@@ -398,10 +398,12 @@
         <p>Monitor experiments, tasks, and laboratory operations.</p>
       </div>
 
-      <button class="new-experiment">
-        + New Experiment
-      </button>
-
+<button
+  class="new-experiment"
+  onclick="window.location.href='/new-experiment.html'"
+>
+  + New Experiment
+</button>
     </div>
 
 
@@ -443,38 +445,14 @@
           <a href="#">View all</a>
         </div>
 
-        <div class="experiment">
-          <div>
-            <h3>Hydrogel Cell Viability Study</h3>
-            <p>Updated today · Cell Culture</p>
-          </div>
-          <span class="status">In Progress</span>
-        </div>
-
-        <div class="experiment">
-          <div>
-            <h3>Protein Expression Optimization</h3>
-            <p>Updated yesterday · Molecular Biology</p>
-          </div>
-          <span class="status">In Progress</span>
-        </div>
-
-        <div class="experiment">
-          <div>
-            <h3>Scaffold Mechanical Testing</h3>
-            <p>Updated Oct 2 · Tissue Engineering</p>
-          </div>
-          <span class="status pending">Analysis</span>
-        </div>
-
-        <div class="experiment">
-          <div>
-            <h3>ROS Fluorescence Assay</h3>
-            <p>Updated Sep 30 · Biochemistry</p>
-          </div>
-          <span class="status">In Progress</span>
-        </div>
-
+<div id="experimentsList">
+  <div class="experiment">
+    <div>
+      <h3>Loading experiments...</h3>
+      <p>Please wait</p>
+    </div>
+  </div>
+</div>
       </section>
 
 
@@ -532,6 +510,85 @@
   </main>
 
 </div>
+<script>
+  async function loadExperiments() {
+    const container = document.getElementById("experimentsList");
 
+    try {
+      const response = await fetch("/api/experiments");
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error("Unable to load experiments.");
+      }
+
+      const experiments = result.experiments || [];
+
+      if (experiments.length === 0) {
+        container.innerHTML = `
+          <div class="experiment">
+            <div>
+              <h3>No experiments yet</h3>
+              <p>Create your first experiment to get started.</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = experiments
+        .slice(0, 5)
+        .map((experiment) => {
+          const title = escapeHtml(experiment.title || "Untitled Experiment");
+          const project = escapeHtml(experiment.project || "Uncategorized");
+          const status = escapeHtml(experiment.status || "Planning");
+          const researcher = escapeHtml(experiment.researcher || "");
+
+          let details = project;
+
+          if (researcher) {
+            details += " · " + researcher;
+          }
+
+          return `
+            <div class="experiment">
+              <div>
+                <h3>${title}</h3>
+                <p>${details}</p>
+              </div>
+
+              <span class="status">
+                ${status}
+              </span>
+            </div>
+          `;
+        })
+        .join("");
+
+    } catch (error) {
+      console.error(error);
+
+      container.innerHTML = `
+        <div class="experiment">
+          <div>
+            <h3>Unable to load experiments</h3>
+            <p>Please refresh the page and try again.</p>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  loadExperiments();
+</script>
 </body>
 </html>
