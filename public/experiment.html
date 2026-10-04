@@ -4,84 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Experiment | LabOps AI</title>
-.log-entry {
-  padding: 18px 0;
-  border-bottom: 1px solid var(--border);
-}
 
-.log-entry:last-child {
-  border-bottom: none;
-}
-
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.log-type {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--green);
-}
-
-.log-date {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.log-text {
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.note-form {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.note-form textarea {
-  width: 100%;
-  min-height: 100px;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font: inherit;
-  resize: vertical;
-  margin-bottom: 10px;
-}
-
-.note-form select {
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: white;
-  margin-right: 8px;
-}
-
-.add-note-button {
-  border: none;
-  background: var(--green);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.add-note-button:hover {
-  background: var(--green-dark);
-}
-
-.no-notes {
-  color: var(--muted);
-  font-size: 13px;
-  padding: 8px 0;
-}
   <style>
     * {
       box-sizing: border-box;
@@ -106,68 +29,13 @@
       color: var(--text);
       min-height: 100vh;
     }
-.edit-button,
-.save-button,
-.cancel-button {
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
 
-.edit-button,
-.save-button {
-  background: var(--green);
-  color: white;
-}
-
-.edit-button:hover,
-.save-button:hover {
-  background: var(--green-dark);
-}
-
-.cancel-button {
-  background: #eeeeee;
-  color: var(--text);
-}
-
-.edit-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 11px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font: inherit;
-  background: white;
-}
-
-.form-group textarea {
-  min-height: 120px;
-  resize: vertical;
-}
     .app {
       display: flex;
       min-height: 100vh;
     }
+
+    /* SIDEBAR */
 
     .sidebar {
       width: 250px;
@@ -219,6 +87,8 @@
       color: rgba(255,255,255,0.55);
       line-height: 1.6;
     }
+
+    /* MAIN */
 
     .main {
       margin-left: 250px;
@@ -295,6 +165,8 @@
       font-style: italic;
     }
 
+    /* DETAILS */
+
     .detail {
       padding: 13px 0;
       border-bottom: 1px solid var(--border);
@@ -333,6 +205,148 @@
       font-weight: 600;
     }
 
+    /* BUTTONS */
+
+    .edit-button,
+    .save-button,
+    .cancel-button,
+    .add-note-button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .edit-button,
+    .save-button,
+    .add-note-button {
+      background: var(--green);
+      color: white;
+    }
+
+    .edit-button:hover,
+    .save-button:hover,
+    .add-note-button:hover {
+      background: var(--green-dark);
+    }
+
+    .cancel-button {
+      background: #eeeeee;
+      color: var(--text);
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* EDIT FORM */
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      background: white;
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    /* EXPERIMENT LOG */
+
+    .log-entry {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .log-type {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .log-date {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .log-text {
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .note-form {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .note-form textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .note-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .note-form select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font: inherit;
+    }
+
+    .no-notes {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px 0;
+    }
+
+    /* LOADING / ERROR */
+
     .loading,
     .error {
       background: white;
@@ -342,6 +356,8 @@
       text-align: center;
       color: var(--muted);
     }
+
+    /* RESPONSIVE */
 
     @media (max-width: 850px) {
       .sidebar {
@@ -372,6 +388,16 @@
 
       .header {
         flex-direction: column;
+      }
+
+      .note-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .note-actions select,
+      .note-actions button {
+        width: 100%;
       }
     }
   </style>
@@ -462,386 +488,6 @@
       }
 
       currentExperiment = result.experiment;
-
-      renderExperiment();
-
-    } catch (error) {
-      console.error(error);
-
-      workspace.innerHTML = `
-        <div class="error">
-          <strong>Unable to load experiment.</strong>
-          <br><br>
-          ${escapeHtml(error.message)}
-        </div>
-      `;
-    }
-  }
-
-  function renderExperiment() {
-    const workspace = document.getElementById("workspace");
-    const experiment = currentExperiment;
-
-    const title = escapeHtml(
-      experiment.title || "Untitled Experiment"
-    );
-
-    const project = escapeHtml(
-      experiment.project || "Uncategorized"
-    );
-
-    const researcher = escapeHtml(
-      experiment.researcher || "Not assigned"
-    );
-
-    const status = escapeHtml(
-      experiment.status || "Planning"
-    );
-
-    const startDate = escapeHtml(
-      experiment.start_date || "Not set"
-    );
-
-    const objective = experiment.objective
-      ? escapeHtml(experiment.objective)
-      : '<span class="empty-text">No objective added.</span>';
-
-    const protocol = experiment.protocol
-      ? escapeHtml(experiment.protocol)
-      : '<span class="empty-text">No protocol added.</span>';
-
-    const tags = String(experiment.tags || "")
-      .split(",")
-      .map(tag => tag.trim())
-      .filter(Boolean);
-
-    const tagsHtml = tags.length
-      ? tags
-          .map(
-            tag =>
-              `<span class="tag">${escapeHtml(tag)}</span>`
-          )
-          .join("")
-      : '<span class="empty-text">No tags</span>';
-
-    document.title = title + " | LabOps AI";
-
-    workspace.innerHTML = `
-      <div class="header">
-
-        <div>
-          <h1>${title}</h1>
-          <p>${project}</p>
-        </div>
-
-        <div>
-          <span class="status">${status}</span>
-
-          <button
-            class="edit-button"
-            onclick="showEditForm()"
-            style="margin-left: 10px;"
-          >
-            Edit Experiment
-          </button>
-        </div>
-
-      </div>
-
-      <div class="grid">
-
-        <div>
-
-          <section class="panel">
-            <h2>Objective</h2>
-            <div class="content">${objective}</div>
-          </section>
-
-          <section class="panel">
-            <h2>Protocol</h2>
-            <div class="content">${protocol}</div>
-          </section>
-<section class="panel">
-  <h2>Experiment Log</h2>
-
-  <div id="experimentLog">
-    <div class="no-notes">
-      Loading entries...
-    </div>
-  </div>
-
-  <div class="note-form">
-
-    <textarea
-      id="newNote"
-      placeholder="Record an observation, result, procedure update, or other experiment note..."
-    ></textarea>
-
-    <select id="entryType">
-      <option value="Observation">Observation</option>
-      <option value="Result">Result</option>
-      <option value="Procedure">Procedure</option>
-      <option value="Issue">Issue</option>
-      <option value="General">General</option>
-    </select>
-
-    <button
-      class="add-note-button"
-      onclick="addNote()"
-    >
-      + Add Entry
-    </button>
-
-  </div>
-</section>
-        </div>
-
-        <div>
-
-          <section class="panel">
-
-            <h2>Experiment Details</h2>
-
-            <div class="detail">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">${status}</div>
-            </div>
-
-            <div class="detail">
-              <div class="detail-label">Researcher</div>
-              <div class="detail-value">${researcher}</div>
-            </div>
-
-            <div class="detail">
-              <div class="detail-label">Project</div>
-              <div class="detail-value">${project}</div>
-            </div>
-
-            <div class="detail">
-              <div class="detail-label">Start Date</div>
-              <div class="detail-value">${startDate}</div>
-            </div>
-
-            <div class="detail">
-              <div class="detail-label">Tags</div>
-              <div class="detail-value">${tagsHtml}</div>
-            </div>
-
-          </section>
-
-        </div>
-
-      </div>
-    `;
-  }
-
-  function showEditForm() {
-    const workspace = document.getElementById("workspace");
-    const experiment = currentExperiment;
-
-    workspace.innerHTML = `
-      <div class="header">
-        <div>
-          <h1>Edit Experiment</h1>
-          <p>Update experiment information.</p>
-        </div>
-      </div>
-
-      <section class="panel">
-
-        <form id="editForm">
-
-          <div class="form-group">
-            <label>Experiment Title</label>
-            <input
-              id="title"
-              type="text"
-              value="${escapeHtml(experiment.title || "")}"
-              required
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Project</label>
-            <input
-              id="project"
-              type="text"
-              value="${escapeHtml(experiment.project || "")}"
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Researcher</label>
-            <input
-              id="researcher"
-              type="text"
-              value="${escapeHtml(experiment.researcher || "")}"
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Status</label>
-
-            <select id="status">
-              <option value="Planning">Planning</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Analysis">Analysis</option>
-              <option value="Completed">Completed</option>
-              <option value="On Hold">On Hold</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Start Date</label>
-            <input
-              id="start_date"
-              type="date"
-              value="${escapeHtml(experiment.start_date || "")}"
-            >
-          </div>
-
-          <div class="form-group">
-            <label>Objective</label>
-            <textarea id="objective">${escapeHtml(experiment.objective || "")}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Protocol</label>
-            <textarea id="protocol">${escapeHtml(experiment.protocol || "")}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Tags</label>
-            <input
-              id="tags"
-              type="text"
-              value="${escapeHtml(experiment.tags || "")}"
-              placeholder="hydrogel, cell culture, microscopy"
-            >
-          </div>
-
-          <div class="edit-actions">
-
-            <button
-              type="submit"
-              class="save-button"
-            >
-              Save Changes
-            </button>
-
-            <button
-              type="button"
-              class="cancel-button"
-              onclick="renderExperiment()"
-            >
-              Cancel
-            </button>
-
-          </div>
-
-        </form>
-
-      </section>
-    `;
-
-    document.getElementById("status").value =
-      experiment.status || "Planning";
-
-    document
-      .getElementById("editForm")
-      .addEventListener("submit", saveExperiment);
-  }
-
-  async function saveExperiment(event) {
-    event.preventDefault();
-
-    const id = getExperimentId();
-
-    const data = {
-      title: document.getElementById("title").value,
-      project: document.getElementById("project").value,
-      researcher: document.getElementById("researcher").value,
-      status: document.getElementById("status").value,
-      start_date: document.getElementById("start_date").value,
-      objective: document.getElementById("objective").value,
-      protocol: document.getElementById("protocol").value,
-      tags: document.getElementById("tags").value
-    };
-
-    try {
-      const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id),
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.error || "Unable to save experiment."
-        );
-      }
-
-      await loadExperiment();
-
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-    }
-  }
-
-  loadExperiment();
-</script><script>
-  let currentExperiment = null;
-
-  function escapeHtml(value) {
-    return String(value)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function getExperimentId() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("id");
-  }
-
-  async function loadExperiment() {
-    const workspace = document.getElementById("workspace");
-    const id = getExperimentId();
-
-    if (!id || !/^\d+$/.test(id)) {
-      workspace.innerHTML = `
-        <div class="error">
-          Invalid experiment ID.
-        </div>
-      `;
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id)
-      );
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(
-          result.error || "Unable to load experiment."
-        );
-      }
-
-      currentExperiment = result.experiment;
-
       renderExperiment();
 
     } catch (error) {
@@ -941,6 +587,60 @@
             <div class="content">${protocol}</div>
           </section>
 
+          <section class="panel">
+
+            <h2>Experiment Log</h2>
+
+            <div id="experimentLog">
+              <div class="no-notes">
+                Loading entries...
+              </div>
+            </div>
+
+            <div class="note-form">
+
+              <textarea
+                id="newNote"
+                placeholder="Record an observation, result, procedure update, or other experiment note..."
+              ></textarea>
+
+              <div class="note-actions">
+
+                <select id="entryType">
+                  <option value="Observation">
+                    Observation
+                  </option>
+
+                  <option value="Result">
+                    Result
+                  </option>
+
+                  <option value="Procedure">
+                    Procedure
+                  </option>
+
+                  <option value="Issue">
+                    Issue
+                  </option>
+
+                  <option value="General">
+                    General
+                  </option>
+                </select>
+
+                <button
+                  class="add-note-button"
+                  onclick="addNote()"
+                >
+                  + Add Entry
+                </button>
+
+              </div>
+
+            </div>
+
+          </section>
+
         </div>
 
         <div>
@@ -980,6 +680,7 @@
 
       </div>
     `;
+
     loadNotes();
   }
 
@@ -1001,6 +702,7 @@
 
           <div class="form-group">
             <label>Experiment Title</label>
+
             <input
               id="title"
               type="text"
@@ -1011,6 +713,7 @@
 
           <div class="form-group">
             <label>Project</label>
+
             <input
               id="project"
               type="text"
@@ -1020,6 +723,7 @@
 
           <div class="form-group">
             <label>Researcher</label>
+
             <input
               id="researcher"
               type="text"
@@ -1041,6 +745,7 @@
 
           <div class="form-group">
             <label>Start Date</label>
+
             <input
               id="start_date"
               type="date"
@@ -1050,16 +755,23 @@
 
           <div class="form-group">
             <label>Objective</label>
-            <textarea id="objective">${escapeHtml(experiment.objective || "")}</textarea>
+
+            <textarea id="objective">${escapeHtml(
+              experiment.objective || ""
+            )}</textarea>
           </div>
 
           <div class="form-group">
             <label>Protocol</label>
-            <textarea id="protocol">${escapeHtml(experiment.protocol || "")}</textarea>
+
+            <textarea id="protocol">${escapeHtml(
+              experiment.protocol || ""
+            )}</textarea>
           </div>
 
           <div class="form-group">
             <label>Tags</label>
+
             <input
               id="tags"
               type="text"
@@ -1121,9 +833,11 @@
         "/api/experiments/" + encodeURIComponent(id),
         {
           method: "PUT",
+
           headers: {
             "Content-Type": "application/json"
           },
+
           body: JSON.stringify(data)
         }
       );
@@ -1143,135 +857,153 @@
       alert(error.message);
     }
   }
-async function loadNotes() {
-  const id = getExperimentId();
-  const container = document.getElementById("experimentLog");
 
-  if (!container) {
-    return;
-  }
+  async function loadNotes() {
+    const id = getExperimentId();
+    const container =
+      document.getElementById("experimentLog");
 
-  try {
-    const response = await fetch(
-      "/api/experiments/" +
-      encodeURIComponent(id) +
-      "/notes"
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.error || "Unable to load experiment log."
-      );
-    }
-
-    const notes = result.notes || [];
-
-    if (notes.length === 0) {
-      container.innerHTML = `
-        <div class="no-notes">
-          No experiment entries yet.
-        </div>
-      `;
+    if (!container) {
       return;
     }
 
-    container.innerHTML = notes
-      .map((note) => {
-        const type = escapeHtml(
-          note.entry_type || "Observation"
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(id) +
+        "/notes"
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to load experiment log."
         );
+      }
 
-        const text = escapeHtml(note.note || "");
+      const notes = result.notes || [];
 
-        const date = note.created_at
-          ? new Date(
-              note.created_at.replace(" ", "T") + "Z"
-            ).toLocaleString()
-          : "";
-
-        return `
-          <div class="log-entry">
-
-            <div class="log-header">
-              <span class="log-type">${type}</span>
-              <span class="log-date">
-                ${escapeHtml(date)}
-              </span>
-            </div>
-
-            <div class="log-text">${text}</div>
-
+      if (notes.length === 0) {
+        container.innerHTML = `
+          <div class="no-notes">
+            No experiment entries yet.
           </div>
         `;
-      })
-      .join("");
 
-  } catch (error) {
-    console.error(error);
-
-    container.innerHTML = `
-      <div class="no-notes">
-        Unable to load experiment log.
-      </div>
-    `;
-  }
-}
-
-
-async function addNote() {
-  const id = getExperimentId();
-
-  const textarea =
-    document.getElementById("newNote");
-
-  const typeSelect =
-    document.getElementById("entryType");
-
-  const note = textarea.value.trim();
-
-  if (!note) {
-    alert("Enter a note first.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      "/api/experiments/" +
-      encodeURIComponent(id) +
-      "/notes",
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          note: note,
-          entry_type: typeSelect.value
-        })
+        return;
       }
-    );
 
-    const result = await response.json();
+      container.innerHTML = notes
+        .map(note => {
 
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.error || "Unable to add entry."
-      );
+          const type = escapeHtml(
+            note.entry_type || "Observation"
+          );
+
+          const noteText = escapeHtml(
+            note.note || ""
+          );
+
+          let date = "";
+
+          if (note.created_at) {
+            const parsedDate = new Date(
+              note.created_at.replace(" ", "T") + "Z"
+            );
+
+            date = parsedDate.toLocaleString();
+          }
+
+          return `
+            <div class="log-entry">
+
+              <div class="log-header">
+
+                <span class="log-type">
+                  ${type}
+                </span>
+
+                <span class="log-date">
+                  ${escapeHtml(date)}
+                </span>
+
+              </div>
+
+              <div class="log-text">
+                ${noteText}
+              </div>
+
+            </div>
+          `;
+        })
+        .join("");
+
+    } catch (error) {
+      console.error(error);
+
+      container.innerHTML = `
+        <div class="no-notes">
+          Unable to load experiment log.
+        </div>
+      `;
+    }
+  }
+
+  async function addNote() {
+    const id = getExperimentId();
+
+    const textarea =
+      document.getElementById("newNote");
+
+    const typeSelect =
+      document.getElementById("entryType");
+
+    const note = textarea.value.trim();
+
+    if (!note) {
+      alert("Enter a note first.");
+      return;
     }
 
-    textarea.value = "";
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(id) +
+        "/notes",
+        {
+          method: "POST",
 
-    await loadNotes();
+          headers: {
+            "Content-Type": "application/json"
+          },
 
-  } catch (error) {
-    console.error(error);
-    alert(error.message);
+          body: JSON.stringify({
+            note: note,
+            entry_type: typeSelect.value
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "Unable to add entry."
+        );
+      }
+
+      textarea.value = "";
+
+      await loadNotes();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
   }
-}
+
   loadExperiment();
 </script>
 
