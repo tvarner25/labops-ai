@@ -1,7 +1,9 @@
 {
   "name": "labops-ai",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-03",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   }
 }
