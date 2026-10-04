@@ -2,17 +2,22 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // --------------------------------
+    // ============================================================
     // EARLY ACCESS
-    // --------------------------------
+    // ============================================================
 
-    if (url.pathname === "/api/early-access" && request.method === "POST") {
+    if (
+      url.pathname === "/api/early-access" &&
+      request.method === "POST"
+    ) {
       try {
         const data = await request.json();
 
         const name = String(data.name || "").trim();
         const email = String(data.email || "").trim();
-        const organization = String(data.organization || "").trim();
+        const organization = String(
+          data.organization || ""
+        ).trim();
         const message = String(data.message || "").trim();
 
         if (!name || !email || !organization) {
@@ -40,7 +45,12 @@ export default {
           (name, email, organization, message)
           VALUES (?, ?, ?, ?)`
         )
-          .bind(name, email, organization, message)
+          .bind(
+            name,
+            email,
+            organization,
+            message
+          )
           .run();
 
         return Response.json({
@@ -61,11 +71,14 @@ export default {
     }
 
 
-    // --------------------------------
+    // ============================================================
     // CREATE EXPERIMENT
-    // --------------------------------
+    // ============================================================
 
-    if (url.pathname === "/api/experiments" && request.method === "POST") {
+    if (
+      url.pathname === "/api/experiments" &&
+      request.method === "POST"
+    ) {
       try {
         const data = await request.json();
 
@@ -73,9 +86,15 @@ export default {
         const project = String(data.project || "").trim();
         const objective = String(data.objective || "").trim();
         const protocol = String(data.protocol || "").trim();
-        const researcher = String(data.researcher || "").trim();
-        const status = String(data.status || "Planning").trim();
-        const startDate = String(data.start_date || "").trim();
+        const researcher = String(
+          data.researcher || ""
+        ).trim();
+        const status = String(
+          data.status || "Planning"
+        ).trim();
+        const startDate = String(
+          data.start_date || ""
+        ).trim();
         const tags = String(data.tags || "").trim();
 
         if (!title) {
@@ -132,345 +151,507 @@ export default {
       }
     }
 
-// --------------------------------
-// GET EXPERIMENTS
-// --------------------------------
 
-if (url.pathname === "/api/experiments" && request.method === "GET") {
-  try {
-    const { results } = await env.DB.prepare(
-      `SELECT
-        id,
-        title,
-        project,
-        objective,
-        protocol,
-        researcher,
-        status,
-        start_date,
-        tags,
-        created_at,
-        updated_at
-      FROM experiments
-      ORDER BY created_at DESC`
-    ).all();
+    // ============================================================
+    // GET ALL EXPERIMENTS
+    // ============================================================
 
-    return Response.json({
-      success: true,
-      experiments: results
-    });
+    if (
+      url.pathname === "/api/experiments" &&
+      request.method === "GET"
+    ) {
+      try {
+        const { results } = await env.DB.prepare(
+          `SELECT
+            id,
+            title,
+            project,
+            objective,
+            protocol,
+            researcher,
+            status,
+            start_date,
+            tags,
+            created_at,
+            updated_at
+          FROM experiments
+          ORDER BY created_at DESC`
+        ).all();
 
-  } catch (error) {
-    console.error(error);
+        return Response.json({
+          success: true,
+          experiments: results
+        });
 
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to load experiments."
-      },
-      { status: 500 }
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load experiments."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // EXPERIMENT NOTES ROUTE MATCHING
+    // ============================================================
+
+    const notesListMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)\/notes$/
     );
-  }
-}
 
-    // --------------------------------
-// GET EXPERIMENT NOTES
-// --------------------------------
-
-if (
-  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
-  request.method === "GET"
-) {
-  try {
-    const parts = url.pathname.split("/");
-    const experimentId = parts[3];
-
-    const { results } = await env.DB.prepare(
-      `SELECT
-        id,
-        experiment_id,
-        note,
-        entry_type,
-        created_at,
-        updated_at
-      FROM experiment_notes
-      WHERE experiment_id = ?
-      ORDER BY created_at DESC, id DESC`
-    )
-      .bind(experimentId)
-      .all();
-
-    return Response.json({
-      success: true,
-      notes: results
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to load experiment notes."
-      },
-      { status: 500 }
+    const singleNoteMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)\/notes\/(\d+)$/
     );
-  }
-}
-
-// --------------------------------
-// GET SINGLE EXPERIMENT
-// --------------------------------
-if (
-  url.pathname.startsWith("/api/experiments/") &&
-  request.method === "GET"
-) {
-  try {
-    const id = url.pathname.split("/").pop();
-
-    if (!id || !/^\d+$/.test(id)) {
-      return Response.json(
-        {
-          success: false,
-          error: "Invalid experiment ID."
-        },
-        { status: 400 }
-      );
-    }
-
-    const experiment = await env.DB.prepare(
-      `SELECT
-        id,
-        title,
-        project,
-        objective,
-        protocol,
-        researcher,
-        status,
-        start_date,
-        tags,
-        created_at,
-        updated_at
-      FROM experiments
-      WHERE id = ?`
-    )
-      .bind(id)
-      .first();
-
-    if (!experiment) {
-      return Response.json(
-        {
-          success: false,
-          error: "Experiment not found."
-        },
-        { status: 404 }
-      );
-    }
-
-    return Response.json({
-      success: true,
-      experiment
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to load experiment."
-      },
-      { status: 500 }
-    );
-  }
-}
-    // --------------------------------
-// UPDATE EXPERIMENT
-// --------------------------------
-
-if (
-  url.pathname.startsWith("/api/experiments/") &&
-  request.method === "PUT"
-) {
-  try {
-    const id = url.pathname.split("/").pop();
-
-    if (!id || !/^\d+$/.test(id)) {
-      return Response.json(
-        {
-          success: false,
-          error: "Invalid experiment ID."
-        },
-        { status: 400 }
-      );
-    }
-
-    const data = await request.json();
-
-    const title = String(data.title || "").trim();
-    const project = String(data.project || "").trim();
-    const objective = String(data.objective || "").trim();
-    const protocol = String(data.protocol || "").trim();
-    const researcher = String(data.researcher || "").trim();
-    const status = String(data.status || "Planning").trim();
-    const startDate = String(data.start_date || "").trim();
-    const tags = String(data.tags || "").trim();
-
-    if (!title) {
-      return Response.json(
-        {
-          success: false,
-          error: "Experiment title is required."
-        },
-        { status: 400 }
-      );
-    }
-
-    const existing = await env.DB.prepare(
-      `SELECT id FROM experiments WHERE id = ?`
-    )
-      .bind(id)
-      .first();
-
-    if (!existing) {
-      return Response.json(
-        {
-          success: false,
-          error: "Experiment not found."
-        },
-        { status: 404 }
-      );
-    }
-
-    await env.DB.prepare(
-      `UPDATE experiments
-       SET
-         title = ?,
-         project = ?,
-         objective = ?,
-         protocol = ?,
-         researcher = ?,
-         status = ?,
-         start_date = ?,
-         tags = ?,
-         updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`
-    )
-      .bind(
-        title,
-        project,
-        objective,
-        protocol,
-        researcher,
-        status,
-        startDate,
-        tags,
-        id
-      )
-      .run();
-
-    return Response.json({
-      success: true,
-      experimentId: Number(id)
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to update experiment."
-      },
-      { status: 500 }
-    );
-  }
-}
 
 
-// --------------------------------
-// CREATE EXPERIMENT NOTE
-// --------------------------------
+    // ============================================================
+    // GET EXPERIMENT NOTES
+    // ============================================================
 
-if (
-  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
-  request.method === "POST"
-) {
-  try {
-    const parts = url.pathname.split("/");
-    const experimentId = parts[3];
+    if (
+      notesListMatch &&
+      request.method === "GET"
+    ) {
+      try {
+        const experimentId = notesListMatch[1];
 
-    const data = await request.json();
-
-    const note = String(data.note || "").trim();
-    const entryType = String(
-      data.entry_type || "Observation"
-    ).trim();
-
-    if (!note) {
-      return Response.json(
-        {
-          success: false,
-          error: "Note cannot be empty."
-        },
-        { status: 400 }
-      );
-    }
-
-    const experiment = await env.DB.prepare(
-      `SELECT id
-       FROM experiments
-       WHERE id = ?`
-    )
-      .bind(experimentId)
-      .first();
-
-    if (!experiment) {
-      return Response.json(
-        {
-          success: false,
-          error: "Experiment not found."
-        },
-        { status: 404 }
-      );
-    }
-
-    const result = await env.DB.prepare(
-      `INSERT INTO experiment_notes
-        (
-          experiment_id,
-          note,
-          entry_type
+        const { results } = await env.DB.prepare(
+          `SELECT
+            id,
+            experiment_id,
+            note,
+            entry_type,
+            created_at,
+            updated_at
+          FROM experiment_notes
+          WHERE experiment_id = ?
+          ORDER BY created_at DESC, id DESC`
         )
-       VALUES (?, ?, ?)`
-    )
-      .bind(
-        experimentId,
-        note,
-        entryType
-      )
-      .run();
+          .bind(experimentId)
+          .all();
 
-    return Response.json({
-      success: true,
-      noteId: result.meta.last_row_id
-    });
+        return Response.json({
+          success: true,
+          notes: results
+        });
 
-  } catch (error) {
-    console.error(error);
+      } catch (error) {
+        console.error(error);
 
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to create experiment note."
-      },
-      { status: 500 }
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load experiment notes."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // CREATE EXPERIMENT NOTE
+    // ============================================================
+
+    if (
+      notesListMatch &&
+      request.method === "POST"
+    ) {
+      try {
+        const experimentId = notesListMatch[1];
+        const data = await request.json();
+
+        const note = String(data.note || "").trim();
+        const entryType = String(
+          data.entry_type || "Observation"
+        ).trim();
+
+        if (!note) {
+          return Response.json(
+            {
+              success: false,
+              error: "Note cannot be empty."
+            },
+            { status: 400 }
+          );
+        }
+
+        const experiment = await env.DB.prepare(
+          `SELECT id
+           FROM experiments
+           WHERE id = ?`
+        )
+          .bind(experimentId)
+          .first();
+
+        if (!experiment) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        const result = await env.DB.prepare(
+          `INSERT INTO experiment_notes
+          (
+            experiment_id,
+            note,
+            entry_type
+          )
+          VALUES (?, ?, ?)`
+        )
+          .bind(
+            experimentId,
+            note,
+            entryType
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          noteId: result.meta.last_row_id
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to create experiment note."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // UPDATE EXPERIMENT NOTE
+    // ============================================================
+
+    if (
+      singleNoteMatch &&
+      request.method === "PUT"
+    ) {
+      try {
+        const experimentId = singleNoteMatch[1];
+        const noteId = singleNoteMatch[2];
+
+        const data = await request.json();
+
+        const note = String(data.note || "").trim();
+        const entryType = String(
+          data.entry_type || "Observation"
+        ).trim();
+
+        if (!note) {
+          return Response.json(
+            {
+              success: false,
+              error: "Note cannot be empty."
+            },
+            { status: 400 }
+          );
+        }
+
+        const existingNote = await env.DB.prepare(
+          `SELECT id
+           FROM experiment_notes
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(noteId, experimentId)
+          .first();
+
+        if (!existingNote) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment entry not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        await env.DB.prepare(
+          `UPDATE experiment_notes
+           SET
+             note = ?,
+             entry_type = ?,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(
+            note,
+            entryType,
+            noteId,
+            experimentId
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          noteId: Number(noteId)
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to update experiment entry."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // DELETE EXPERIMENT NOTE
+    // ============================================================
+
+    if (
+      singleNoteMatch &&
+      request.method === "DELETE"
+    ) {
+      try {
+        const experimentId = singleNoteMatch[1];
+        const noteId = singleNoteMatch[2];
+
+        const existingNote = await env.DB.prepare(
+          `SELECT id
+           FROM experiment_notes
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(noteId, experimentId)
+          .first();
+
+        if (!existingNote) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment entry not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        await env.DB.prepare(
+          `DELETE FROM experiment_notes
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(noteId, experimentId)
+          .run();
+
+        return Response.json({
+          success: true
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to delete experiment entry."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // SINGLE EXPERIMENT ROUTE
+    // ============================================================
+
+    const experimentMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)$/
     );
-  }
-}
-    // --------------------------------
+
+
+    // ============================================================
+    // GET SINGLE EXPERIMENT
+    // ============================================================
+
+    if (
+      experimentMatch &&
+      request.method === "GET"
+    ) {
+      try {
+        const id = experimentMatch[1];
+
+        const experiment = await env.DB.prepare(
+          `SELECT
+            id,
+            title,
+            project,
+            objective,
+            protocol,
+            researcher,
+            status,
+            start_date,
+            tags,
+            created_at,
+            updated_at
+          FROM experiments
+          WHERE id = ?`
+        )
+          .bind(id)
+          .first();
+
+        if (!experiment) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        return Response.json({
+          success: true,
+          experiment
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load experiment."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // UPDATE EXPERIMENT
+    // ============================================================
+
+    if (
+      experimentMatch &&
+      request.method === "PUT"
+    ) {
+      try {
+        const id = experimentMatch[1];
+        const data = await request.json();
+
+        const title = String(data.title || "").trim();
+        const project = String(data.project || "").trim();
+        const objective = String(
+          data.objective || ""
+        ).trim();
+        const protocol = String(
+          data.protocol || ""
+        ).trim();
+        const researcher = String(
+          data.researcher || ""
+        ).trim();
+        const status = String(
+          data.status || "Planning"
+        ).trim();
+        const startDate = String(
+          data.start_date || ""
+        ).trim();
+        const tags = String(data.tags || "").trim();
+
+        if (!title) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment title is required."
+            },
+            { status: 400 }
+          );
+        }
+
+        const existing = await env.DB.prepare(
+          `SELECT id
+           FROM experiments
+           WHERE id = ?`
+        )
+          .bind(id)
+          .first();
+
+        if (!existing) {
+          return Response.json(
+            {
+              success: false,
+              error: "Experiment not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        await env.DB.prepare(
+          `UPDATE experiments
+           SET
+             title = ?,
+             project = ?,
+             objective = ?,
+             protocol = ?,
+             researcher = ?,
+             status = ?,
+             start_date = ?,
+             tags = ?,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
+        )
+          .bind(
+            title,
+            project,
+            objective,
+            protocol,
+            researcher,
+            status,
+            startDate,
+            tags,
+            id
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          experimentId: Number(id)
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to update experiment."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
     // STATIC WEBSITE
-    // --------------------------------
+    // ============================================================
 
     return env.ASSETS.fetch(request);
   }
