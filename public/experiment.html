@@ -4,7 +4,84 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Experiment | LabOps AI</title>
+.log-entry {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
 
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.log-type {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.log-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.log-text {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.note-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.note-form textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.note-form select {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  margin-right: 8px;
+}
+
+.add-note-button {
+  border: none;
+  background: var(--green);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-note-button:hover {
+  background: var(--green-dark);
+}
+
+.no-notes {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
   <style>
     * {
       box-sizing: border-box;
@@ -484,7 +561,39 @@
             <h2>Protocol</h2>
             <div class="content">${protocol}</div>
           </section>
+<section class="panel">
+  <h2>Experiment Log</h2>
 
+  <div id="experimentLog">
+    <div class="no-notes">
+      Loading entries...
+    </div>
+  </div>
+
+  <div class="note-form">
+
+    <textarea
+      id="newNote"
+      placeholder="Record an observation, result, procedure update, or other experiment note..."
+    ></textarea>
+
+    <select id="entryType">
+      <option value="Observation">Observation</option>
+      <option value="Result">Result</option>
+      <option value="Procedure">Procedure</option>
+      <option value="Issue">Issue</option>
+      <option value="General">General</option>
+    </select>
+
+    <button
+      class="add-note-button"
+      onclick="addNote()"
+    >
+      + Add Entry
+    </button>
+
+  </div>
+</section>
         </div>
 
         <div>
@@ -871,6 +980,7 @@
 
       </div>
     `;
+    loadNotes();
   }
 
   function showEditForm() {
@@ -1033,7 +1143,135 @@
       alert(error.message);
     }
   }
+async function loadNotes() {
+  const id = getExperimentId();
+  const container = document.getElementById("experimentLog");
 
+  if (!container) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/experiments/" +
+      encodeURIComponent(id) +
+      "/notes"
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error || "Unable to load experiment log."
+      );
+    }
+
+    const notes = result.notes || [];
+
+    if (notes.length === 0) {
+      container.innerHTML = `
+        <div class="no-notes">
+          No experiment entries yet.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = notes
+      .map((note) => {
+        const type = escapeHtml(
+          note.entry_type || "Observation"
+        );
+
+        const text = escapeHtml(note.note || "");
+
+        const date = note.created_at
+          ? new Date(
+              note.created_at.replace(" ", "T") + "Z"
+            ).toLocaleString()
+          : "";
+
+        return `
+          <div class="log-entry">
+
+            <div class="log-header">
+              <span class="log-type">${type}</span>
+              <span class="log-date">
+                ${escapeHtml(date)}
+              </span>
+            </div>
+
+            <div class="log-text">${text}</div>
+
+          </div>
+        `;
+      })
+      .join("");
+
+  } catch (error) {
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="no-notes">
+        Unable to load experiment log.
+      </div>
+    `;
+  }
+}
+
+
+async function addNote() {
+  const id = getExperimentId();
+
+  const textarea =
+    document.getElementById("newNote");
+
+  const typeSelect =
+    document.getElementById("entryType");
+
+  const note = textarea.value.trim();
+
+  if (!note) {
+    alert("Enter a note first.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "/api/experiments/" +
+      encodeURIComponent(id) +
+      "/notes",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          note: note,
+          entry_type: typeSelect.value
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.error || "Unable to add entry."
+      );
+    }
+
+    textarea.value = "";
+
+    await loadNotes();
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  }
+}
   loadExperiment();
 </script>
 
