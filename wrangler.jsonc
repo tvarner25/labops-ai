@@ -2,8 +2,17 @@
   "name": "labops-ai",
   "main": "src/worker.js",
   "compatibility_date": "2026-10-03",
+
   "assets": {
     "directory": ".",
     "binding": "ASSETS"
-  }
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "labops-leads",
+      "database_id": "c5434fc2-5b7c-400b-8949-65a7a30caaa8"
+    }
+  ]
 }
