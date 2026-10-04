@@ -151,6 +151,13 @@
       margin-bottom: 15px;
     }
 
+    .panel-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: -8px;
+      margin-bottom: 18px;
+    }
+
     .content {
       color: #3f493d;
       font-size: 14px;
@@ -205,24 +212,20 @@
       font: inherit;
     }
 
+    .primary-button,
     .edit-button,
     .save-button,
-    .cancel-button,
     .add-note-button {
       border: none;
       padding: 10px 16px;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-    }
-
-    .edit-button,
-    .save-button,
-    .add-note-button {
       background: var(--green);
       color: white;
     }
 
+    .primary-button:hover,
     .edit-button:hover,
     .save-button:hover,
     .add-note-button:hover {
@@ -230,6 +233,11 @@
     }
 
     .cancel-button {
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
       background: #eeeeee;
       color: var(--text);
     }
@@ -267,7 +275,111 @@
       resize: vertical;
     }
 
-    /* EXPERIMENT LOG */
+    /* RESULTS */
+
+    .results-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    .results-table th {
+      text-align: left;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .results-table td {
+      padding: 13px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    .results-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .result-value {
+      font-weight: 700;
+    }
+
+    .result-notes {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .small-edit,
+    .small-delete {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .small-edit {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .small-delete {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .result-form {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .result-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 0.7fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .result-form input,
+    .result-form textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    .result-form textarea {
+      min-height: 75px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .result-editor {
+      padding: 16px;
+      background: #fafbf9;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    /* LOG */
 
     .log-entry {
       padding: 18px 0;
@@ -316,22 +428,21 @@
     }
 
     .log-edit-button,
-    .log-delete-button {
+    .log-delete-button,
+    .log-save-button,
+    .log-cancel-button {
       border: none;
       border-radius: 6px;
-      padding: 6px 9px;
+      padding: 7px 10px;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
     }
 
-    .log-edit-button {
+    .log-edit-button,
+    .log-save-button {
       background: var(--green-light);
       color: var(--green);
-    }
-
-    .log-edit-button:hover {
-      background: #dce9d6;
     }
 
     .log-delete-button {
@@ -339,8 +450,9 @@
       color: var(--danger);
     }
 
-    .log-delete-button:hover {
-      background: #f4dada;
+    .log-cancel-button {
+      background: #eeeeee;
+      color: var(--text);
     }
 
     .note-form {
@@ -377,27 +489,7 @@
       font: inherit;
     }
 
-    .log-save-button,
-    .log-cancel-button {
-      border: none;
-      border-radius: 7px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .log-save-button {
-      background: var(--green);
-      color: white;
-    }
-
-    .log-cancel-button {
-      background: #eeeeee;
-      color: var(--text);
-    }
-
-    .no-notes {
+    .no-data {
       color: var(--muted);
       font-size: 13px;
       padding: 8px 0;
@@ -427,6 +519,10 @@
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .result-form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
     @media (max-width: 650px) {
@@ -445,17 +541,14 @@
         flex-direction: column;
       }
 
+      .result-form-grid {
+        grid-template-columns: 1fr;
+      }
+
       .note-actions,
       .log-edit-actions {
         flex-direction: column;
         align-items: stretch;
-      }
-
-      .note-actions select,
-      .note-actions button,
-      .log-edit-actions select,
-      .log-edit-actions button {
-        width: 100%;
       }
     }
   </style>
@@ -473,9 +566,7 @@
 
     <nav class="nav">
       <a href="/dashboard.html">Dashboard</a>
-      <a href="/experiments.html" class="active">
-        Experiments
-      </a>
+      <a href="/experiments.html" class="active">Experiments</a>
       <a href="#">Inventory</a>
       <a href="#">Tasks</a>
       <a href="#">AI Assistant</a>
@@ -490,10 +581,7 @@
 
   <main class="main">
 
-    <a
-      class="back-link"
-      href="/experiments.html"
-    >
+    <a class="back-link" href="/experiments.html">
       ← Back to Experiments
     </a>
 
@@ -511,6 +599,7 @@
 <script>
   let currentExperiment = null;
   let currentNotes = [];
+  let currentResults = [];
 
 
   function escapeHtml(value) {
@@ -524,15 +613,26 @@
 
 
   function getExperimentId() {
-    const params =
-      new URLSearchParams(window.location.search);
-
+    const params = new URLSearchParams(window.location.search);
     return params.get("id");
   }
 
 
+  function formatDate(value) {
+    if (!value) {
+      return "";
+    }
+
+    const parsed = new Date(
+      value.replace(" ", "T") + "Z"
+    );
+
+    return parsed.toLocaleString();
+  }
+
+
   // ============================================================
-  // LOAD EXPERIMENT
+  // EXPERIMENT
   // ============================================================
 
   async function loadExperiment() {
@@ -547,7 +647,6 @@
           Invalid experiment ID.
         </div>
       `;
-
       return;
     }
 
@@ -567,7 +666,6 @@
       }
 
       currentExperiment = result.experiment;
-
       renderExperiment();
 
     } catch (error) {
@@ -575,22 +673,14 @@
 
       workspace.innerHTML = `
         <div class="error">
-          <strong>
-            Unable to load experiment.
-          </strong>
-
+          <strong>Unable to load experiment.</strong>
           <br><br>
-
           ${escapeHtml(error.message)}
         </div>
       `;
     }
   }
 
-
-  // ============================================================
-  // RENDER EXPERIMENT
-  // ============================================================
 
   function renderExperiment() {
     const workspace =
@@ -620,19 +710,11 @@
 
     const objective = experiment.objective
       ? escapeHtml(experiment.objective)
-      : `
-        <span class="empty-text">
-          No objective added.
-        </span>
-      `;
+      : '<span class="empty-text">No objective added.</span>';
 
     const protocol = experiment.protocol
       ? escapeHtml(experiment.protocol)
-      : `
-        <span class="empty-text">
-          No protocol added.
-        </span>
-      `;
+      : '<span class="empty-text">No protocol added.</span>';
 
     const tags = String(experiment.tags || "")
       .split(",")
@@ -640,17 +722,11 @@
       .filter(Boolean);
 
     const tagsHtml = tags.length
-      ? tags
-          .map(
-            tag =>
-              `<span class="tag">${escapeHtml(tag)}</span>`
-          )
-          .join("")
-      : `
-        <span class="empty-text">
-          No tags
-        </span>
-      `;
+      ? tags.map(
+          tag =>
+            `<span class="tag">${escapeHtml(tag)}</span>`
+        ).join("")
+      : '<span class="empty-text">No tags</span>';
 
     document.title =
       title + " | LabOps AI";
@@ -664,7 +740,6 @@
         </div>
 
         <div>
-
           <span class="status">
             ${status}
           </span>
@@ -676,7 +751,6 @@
           >
             Edit Experiment
           </button>
-
         </div>
 
       </div>
@@ -687,22 +761,79 @@
         <div>
 
           <section class="panel">
-
             <h2>Objective</h2>
-
             <div class="content">
               ${objective}
             </div>
+          </section>
 
+
+          <section class="panel">
+            <h2>Protocol</h2>
+            <div class="content">
+              ${protocol}
+            </div>
           </section>
 
 
           <section class="panel">
 
-            <h2>Protocol</h2>
+            <h2>Results & Data</h2>
 
-            <div class="content">
-              ${protocol}
+            <div class="panel-subtitle">
+              Structured measurements and experimental outputs.
+            </div>
+
+            <div id="resultsContainer">
+              <div class="no-data">
+                Loading results...
+              </div>
+            </div>
+
+
+            <div class="result-form">
+
+              <div class="result-form-grid">
+
+                <input
+                  id="resultSample"
+                  type="text"
+                  placeholder="Sample name"
+                >
+
+                <input
+                  id="resultMeasurement"
+                  type="text"
+                  placeholder="Measurement"
+                >
+
+                <input
+                  id="resultValue"
+                  type="number"
+                  step="any"
+                  placeholder="Value"
+                >
+
+                <input
+                  id="resultUnit"
+                  type="text"
+                  placeholder="Unit"
+                >
+
+              </div>
+
+              <textarea
+                id="resultNotes"
+                placeholder="Optional notes about this result..."
+              ></textarea>
+
+              <button
+                class="primary-button"
+                onclick="addResult()"
+              >
+                + Add Result
+              </button>
+
             </div>
 
           </section>
@@ -713,11 +844,9 @@
             <h2>Experiment Log</h2>
 
             <div id="experimentLog">
-
-              <div class="no-notes">
+              <div class="no-data">
                 Loading entries...
               </div>
-
             </div>
 
 
@@ -728,11 +857,9 @@
                 placeholder="Record an observation, result, procedure update, or other experiment note..."
               ></textarea>
 
-
               <div class="note-actions">
 
                 <select id="entryType">
-
                   <option value="Observation">
                     Observation
                   </option>
@@ -752,9 +879,7 @@
                   <option value="General">
                     General
                   </option>
-
                 </select>
-
 
                 <button
                   class="add-note-button"
@@ -776,73 +901,51 @@
 
           <section class="panel">
 
-            <h2>
-              Experiment Details
-            </h2>
-
+            <h2>Experiment Details</h2>
 
             <div class="detail">
-
               <div class="detail-label">
                 Status
               </div>
-
               <div class="detail-value">
                 ${status}
               </div>
-
             </div>
 
-
             <div class="detail">
-
               <div class="detail-label">
                 Researcher
               </div>
-
               <div class="detail-value">
                 ${researcher}
               </div>
-
             </div>
 
-
             <div class="detail">
-
               <div class="detail-label">
                 Project
               </div>
-
               <div class="detail-value">
                 ${project}
               </div>
-
             </div>
 
-
             <div class="detail">
-
               <div class="detail-label">
                 Start Date
               </div>
-
               <div class="detail-value">
                 ${startDate}
               </div>
-
             </div>
 
-
             <div class="detail">
-
               <div class="detail-label">
                 Tags
               </div>
-
               <div class="detail-value">
                 ${tagsHtml}
               </div>
-
             </div>
 
           </section>
@@ -852,6 +955,7 @@
       </div>
     `;
 
+    loadResults();
     loadNotes();
   }
 
@@ -868,152 +972,87 @@
 
     workspace.innerHTML = `
       <div class="header">
-
         <div>
           <h1>Edit Experiment</h1>
-          <p>
-            Update experiment information.
-          </p>
+          <p>Update experiment information.</p>
         </div>
-
       </div>
-
 
       <section class="panel">
 
         <form id="editForm">
 
           <div class="form-group">
-
-            <label>
-              Experiment Title
-            </label>
-
+            <label>Experiment Title</label>
             <input
               id="title"
               type="text"
-              value="${escapeHtml(
-                experiment.title || ""
-              )}"
+              value="${escapeHtml(experiment.title || "")}"
               required
             >
-
           </div>
 
-
           <div class="form-group">
-
             <label>Project</label>
-
             <input
               id="project"
               type="text"
-              value="${escapeHtml(
-                experiment.project || ""
-              )}"
+              value="${escapeHtml(experiment.project || "")}"
             >
-
           </div>
 
-
           <div class="form-group">
-
             <label>Researcher</label>
-
             <input
               id="researcher"
               type="text"
-              value="${escapeHtml(
-                experiment.researcher || ""
-              )}"
+              value="${escapeHtml(experiment.researcher || "")}"
             >
-
           </div>
 
-
           <div class="form-group">
-
             <label>Status</label>
 
             <select id="status">
-
-              <option value="Planning">
-                Planning
-              </option>
-
-              <option value="In Progress">
-                In Progress
-              </option>
-
-              <option value="Analysis">
-                Analysis
-              </option>
-
-              <option value="Completed">
-                Completed
-              </option>
-
-              <option value="On Hold">
-                On Hold
-              </option>
-
+              <option value="Planning">Planning</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Analysis">Analysis</option>
+              <option value="Completed">Completed</option>
+              <option value="On Hold">On Hold</option>
             </select>
-
           </div>
 
-
           <div class="form-group">
-
             <label>Start Date</label>
-
             <input
               id="start_date"
               type="date"
-              value="${escapeHtml(
-                experiment.start_date || ""
-              )}"
+              value="${escapeHtml(experiment.start_date || "")}"
             >
-
           </div>
 
-
           <div class="form-group">
-
             <label>Objective</label>
-
             <textarea id="objective">${escapeHtml(
               experiment.objective || ""
             )}</textarea>
-
           </div>
 
-
           <div class="form-group">
-
             <label>Protocol</label>
-
             <textarea id="protocol">${escapeHtml(
               experiment.protocol || ""
             )}</textarea>
-
           </div>
 
-
           <div class="form-group">
-
             <label>Tags</label>
-
             <input
               id="tags"
               type="text"
-              value="${escapeHtml(
-                experiment.tags || ""
-              )}"
-              placeholder="hydrogel, cell culture, microscopy"
+              value="${escapeHtml(experiment.tags || "")}"
             >
-
           </div>
-
 
           <div class="edit-actions">
 
@@ -1023,7 +1062,6 @@
             >
               Save Changes
             </button>
-
 
             <button
               type="button"
@@ -1058,29 +1096,14 @@
     const id = getExperimentId();
 
     const data = {
-      title:
-        document.getElementById("title").value,
-
-      project:
-        document.getElementById("project").value,
-
-      researcher:
-        document.getElementById("researcher").value,
-
-      status:
-        document.getElementById("status").value,
-
-      start_date:
-        document.getElementById("start_date").value,
-
-      objective:
-        document.getElementById("objective").value,
-
-      protocol:
-        document.getElementById("protocol").value,
-
-      tags:
-        document.getElementById("tags").value
+      title: document.getElementById("title").value,
+      project: document.getElementById("project").value,
+      researcher: document.getElementById("researcher").value,
+      status: document.getElementById("status").value,
+      start_date: document.getElementById("start_date").value,
+      objective: document.getElementById("objective").value,
+      protocol: document.getElementById("protocol").value,
+      tags: document.getElementById("tags").value
     };
 
     try {
@@ -1089,11 +1112,9 @@
         encodeURIComponent(id),
         {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json"
           },
-
           body: JSON.stringify(data)
         }
       );
@@ -1117,7 +1138,433 @@
 
 
   // ============================================================
-  // LOAD NOTES
+  // RESULTS
+  // ============================================================
+
+  async function loadResults() {
+    const id = getExperimentId();
+
+    const container =
+      document.getElementById("resultsContainer");
+
+    if (!container) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(id) +
+        "/results"
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to load results."
+        );
+      }
+
+      currentResults = result.results || [];
+
+      renderResults();
+
+    } catch (error) {
+      console.error(error);
+
+      container.innerHTML = `
+        <div class="no-data">
+          Unable to load results.
+        </div>
+      `;
+    }
+  }
+
+
+  function renderResults() {
+    const container =
+      document.getElementById("resultsContainer");
+
+    if (!container) {
+      return;
+    }
+
+    if (currentResults.length === 0) {
+      container.innerHTML = `
+        <div class="no-data">
+          No structured results yet.
+        </div>
+      `;
+      return;
+    }
+
+    const rows = currentResults
+      .map(result => {
+
+        const sample = escapeHtml(
+          result.sample_name || "—"
+        );
+
+        const measurement = escapeHtml(
+          result.measurement || ""
+        );
+
+        const value = escapeHtml(
+          result.value ?? ""
+        );
+
+        const unit = escapeHtml(
+          result.unit || ""
+        );
+
+        const notes = result.notes
+          ? `
+            <div class="result-notes">
+              ${escapeHtml(result.notes)}
+            </div>
+          `
+          : "";
+
+        return `
+          <tr>
+            <td>${sample}</td>
+
+            <td>
+              ${measurement}
+              ${notes}
+            </td>
+
+            <td class="result-value">
+              ${value}
+            </td>
+
+            <td>${unit || "—"}</td>
+
+            <td>
+              <div class="row-actions">
+
+                <button
+                  class="small-edit"
+                  onclick="editResult(${result.id})"
+                >
+                  Edit
+                </button>
+
+                <button
+                  class="small-delete"
+                  onclick="deleteResult(${result.id})"
+                >
+                  Delete
+                </button>
+
+              </div>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    container.innerHTML = `
+      <div class="results-table-wrap">
+
+        <table class="results-table">
+
+          <thead>
+            <tr>
+              <th>Sample</th>
+              <th>Measurement</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rows}
+          </tbody>
+
+        </table>
+
+      </div>
+    `;
+  }
+
+
+  async function addResult() {
+    const experimentId = getExperimentId();
+
+    const sampleName =
+      document.getElementById("resultSample").value.trim();
+
+    const measurement =
+      document.getElementById("resultMeasurement").value.trim();
+
+    const value =
+      document.getElementById("resultValue").value;
+
+    const unit =
+      document.getElementById("resultUnit").value.trim();
+
+    const notes =
+      document.getElementById("resultNotes").value.trim();
+
+    if (!measurement) {
+      alert("Enter a measurement.");
+      return;
+    }
+
+    if (value === "") {
+      alert("Enter a numeric value.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(experimentId) +
+        "/results",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            sample_name: sampleName,
+            measurement,
+            value,
+            unit,
+            notes
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to add result."
+        );
+      }
+
+      document.getElementById("resultSample").value = "";
+      document.getElementById("resultMeasurement").value = "";
+      document.getElementById("resultValue").value = "";
+      document.getElementById("resultUnit").value = "";
+      document.getElementById("resultNotes").value = "";
+
+      await loadResults();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  function editResult(resultId) {
+    const result = currentResults.find(
+      item =>
+        Number(item.id) === Number(resultId)
+    );
+
+    if (!result) {
+      return;
+    }
+
+    const container =
+      document.getElementById("resultsContainer");
+
+    container.innerHTML = `
+      <div class="result-editor">
+
+        <div class="result-form-grid">
+
+          <input
+            id="editResultSample"
+            type="text"
+            placeholder="Sample name"
+            value="${escapeHtml(result.sample_name || "")}"
+          >
+
+          <input
+            id="editResultMeasurement"
+            type="text"
+            placeholder="Measurement"
+            value="${escapeHtml(result.measurement || "")}"
+          >
+
+          <input
+            id="editResultValue"
+            type="number"
+            step="any"
+            placeholder="Value"
+            value="${escapeHtml(result.value ?? "")}"
+          >
+
+          <input
+            id="editResultUnit"
+            type="text"
+            placeholder="Unit"
+            value="${escapeHtml(result.unit || "")}"
+          >
+
+        </div>
+
+        <textarea
+          id="editResultNotes"
+          class="log-edit-textarea"
+          placeholder="Notes"
+        >${escapeHtml(result.notes || "")}</textarea>
+
+        <div class="edit-actions">
+
+          <button
+            class="save-button"
+            onclick="saveResult(${resultId})"
+          >
+            Save Result
+          </button>
+
+          <button
+            class="cancel-button"
+            onclick="renderResults()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  async function saveResult(resultId) {
+    const experimentId = getExperimentId();
+
+    const sampleName =
+      document.getElementById(
+        "editResultSample"
+      ).value.trim();
+
+    const measurement =
+      document.getElementById(
+        "editResultMeasurement"
+      ).value.trim();
+
+    const value =
+      document.getElementById(
+        "editResultValue"
+      ).value;
+
+    const unit =
+      document.getElementById(
+        "editResultUnit"
+      ).value.trim();
+
+    const notes =
+      document.getElementById(
+        "editResultNotes"
+      ).value.trim();
+
+    if (!measurement) {
+      alert("Enter a measurement.");
+      return;
+    }
+
+    if (value === "") {
+      alert("Enter a numeric value.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(experimentId) +
+        "/results/" +
+        encodeURIComponent(resultId),
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            sample_name: sampleName,
+            measurement,
+            value,
+            unit,
+            notes
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to update result."
+        );
+      }
+
+      await loadResults();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  async function deleteResult(resultId) {
+    const confirmed = confirm(
+      "Delete this result? This cannot be undone."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const experimentId = getExperimentId();
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(experimentId) +
+        "/results/" +
+        encodeURIComponent(resultId),
+        {
+          method: "DELETE"
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to delete result."
+        );
+      }
+
+      await loadResults();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  // ============================================================
+  // NOTES
   // ============================================================
 
   async function loadNotes() {
@@ -1147,24 +1594,19 @@
       }
 
       currentNotes = result.notes || [];
-
       renderNotes();
 
     } catch (error) {
       console.error(error);
 
       container.innerHTML = `
-        <div class="no-notes">
+        <div class="no-data">
           Unable to load experiment log.
         </div>
       `;
     }
   }
 
-
-  // ============================================================
-  // RENDER NOTES
-  // ============================================================
 
   function renderNotes() {
     const container =
@@ -1176,11 +1618,10 @@
 
     if (currentNotes.length === 0) {
       container.innerHTML = `
-        <div class="no-notes">
+        <div class="no-data">
           No experiment entries yet.
         </div>
       `;
-
       return;
     }
 
@@ -1191,19 +1632,13 @@
           note.entry_type || "Observation"
         );
 
-        const noteText = escapeHtml(
+        const text = escapeHtml(
           note.note || ""
         );
 
-        let date = "";
-
-        if (note.created_at) {
-          const parsedDate = new Date(
-            note.created_at.replace(" ", "T") + "Z"
-          );
-
-          date = parsedDate.toLocaleString();
-        }
+        const date = formatDate(
+          note.created_at
+        );
 
         return `
           <div
@@ -1225,7 +1660,6 @@
 
               </div>
 
-
               <div class="log-controls">
 
                 <button
@@ -1246,9 +1680,8 @@
 
             </div>
 
-
             <div class="log-text">
-              ${noteText}
+              ${text}
             </div>
 
           </div>
@@ -1257,10 +1690,6 @@
       .join("");
   }
 
-
-  // ============================================================
-  // ADD NOTE
-  // ============================================================
 
   async function addNote() {
     const id = getExperimentId();
@@ -1291,7 +1720,7 @@
           },
 
           body: JSON.stringify({
-            note: note,
+            note,
             entry_type: typeSelect.value
           })
         }
@@ -1317,13 +1746,10 @@
   }
 
 
-  // ============================================================
-  // SHOW NOTE EDITOR
-  // ============================================================
-
   function editNote(noteId) {
     const note = currentNotes.find(
-      item => Number(item.id) === Number(noteId)
+      item =>
+        Number(item.id) === Number(noteId)
     );
 
     if (!note) {
@@ -1345,14 +1771,12 @@
         id="edit-note-${noteId}"
       >${escapeHtml(note.note || "")}</textarea>
 
-
       <div class="log-edit-actions">
 
         <select
           class="log-edit-select"
           id="edit-type-${noteId}"
         >
-
           <option value="Observation">
             Observation
           </option>
@@ -1372,9 +1796,7 @@
           <option value="General">
             General
           </option>
-
         </select>
-
 
         <button
           class="log-save-button"
@@ -1382,7 +1804,6 @@
         >
           Save
         </button>
-
 
         <button
           class="log-cancel-button"
@@ -1401,13 +1822,8 @@
   }
 
 
-  // ============================================================
-  // SAVE EDITED NOTE
-  // ============================================================
-
   async function saveNote(noteId) {
-    const experimentId =
-      getExperimentId();
+    const experimentId = getExperimentId();
 
     const textarea =
       document.getElementById(
@@ -1440,7 +1856,7 @@
           },
 
           body: JSON.stringify({
-            note: note,
+            note,
             entry_type: typeSelect.value
           })
         }
@@ -1464,10 +1880,6 @@
   }
 
 
-  // ============================================================
-  // DELETE NOTE
-  // ============================================================
-
   async function deleteNote(noteId) {
     const confirmed = confirm(
       "Delete this experiment log entry? This cannot be undone."
@@ -1477,8 +1889,7 @@
       return;
     }
 
-    const experimentId =
-      getExperimentId();
+    const experimentId = getExperimentId();
 
     try {
       const response = await fetch(
