@@ -21,6 +21,8 @@
       --text: #172116;
       --muted: #6c766a;
       --border: #dfe5dc;
+      --danger: #a83232;
+      --danger-light: #fbeaea;
     }
 
     body {
@@ -34,8 +36,6 @@
       display: flex;
       min-height: 100vh;
     }
-
-    /* SIDEBAR */
 
     .sidebar {
       width: 250px;
@@ -87,8 +87,6 @@
       color: rgba(255,255,255,0.55);
       line-height: 1.6;
     }
-
-    /* MAIN */
 
     .main {
       margin-left: 250px;
@@ -165,8 +163,6 @@
       font-style: italic;
     }
 
-    /* DETAILS */
-
     .detail {
       padding: 13px 0;
       border-bottom: 1px solid var(--border);
@@ -205,7 +201,9 @@
       font-weight: 600;
     }
 
-    /* BUTTONS */
+    button {
+      font: inherit;
+    }
 
     .edit-button,
     .save-button,
@@ -241,8 +239,6 @@
       gap: 10px;
       margin-top: 20px;
     }
-
-    /* EDIT FORM */
 
     .form-group {
       margin-bottom: 18px;
@@ -285,9 +281,15 @@
     .log-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       margin-bottom: 8px;
+    }
+
+    .log-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .log-type {
@@ -308,13 +310,47 @@
       overflow-wrap: anywhere;
     }
 
+    .log-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .log-edit-button,
+    .log-delete-button {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .log-edit-button {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .log-edit-button:hover {
+      background: #dce9d6;
+    }
+
+    .log-delete-button {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .log-delete-button:hover {
+      background: #f4dada;
+    }
+
     .note-form {
       margin-top: 20px;
       padding-top: 20px;
       border-top: 1px solid var(--border);
     }
 
-    .note-form textarea {
+    .note-form textarea,
+    .log-edit-textarea {
       width: 100%;
       min-height: 100px;
       padding: 11px 12px;
@@ -325,13 +361,15 @@
       margin-bottom: 10px;
     }
 
-    .note-actions {
+    .note-actions,
+    .log-edit-actions {
       display: flex;
       gap: 8px;
       align-items: center;
     }
 
-    .note-form select {
+    .note-form select,
+    .log-edit-select {
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -339,13 +377,31 @@
       font: inherit;
     }
 
+    .log-save-button,
+    .log-cancel-button {
+      border: none;
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .log-save-button {
+      background: var(--green);
+      color: white;
+    }
+
+    .log-cancel-button {
+      background: #eeeeee;
+      color: var(--text);
+    }
+
     .no-notes {
       color: var(--muted);
       font-size: 13px;
       padding: 8px 0;
     }
-
-    /* LOADING / ERROR */
 
     .loading,
     .error {
@@ -356,8 +412,6 @@
       text-align: center;
       color: var(--muted);
     }
-
-    /* RESPONSIVE */
 
     @media (max-width: 850px) {
       .sidebar {
@@ -386,17 +440,21 @@
         padding: 20px;
       }
 
-      .header {
+      .header,
+      .log-header {
         flex-direction: column;
       }
 
-      .note-actions {
+      .note-actions,
+      .log-edit-actions {
         flex-direction: column;
         align-items: stretch;
       }
 
       .note-actions select,
-      .note-actions button {
+      .note-actions button,
+      .log-edit-actions select,
+      .log-edit-actions button {
         width: 100%;
       }
     }
@@ -415,7 +473,9 @@
 
     <nav class="nav">
       <a href="/dashboard.html">Dashboard</a>
-      <a href="/experiments.html" class="active">Experiments</a>
+      <a href="/experiments.html" class="active">
+        Experiments
+      </a>
       <a href="#">Inventory</a>
       <a href="#">Tasks</a>
       <a href="#">AI Assistant</a>
@@ -430,7 +490,10 @@
 
   <main class="main">
 
-    <a class="back-link" href="/experiments.html">
+    <a
+      class="back-link"
+      href="/experiments.html"
+    >
       ← Back to Experiments
     </a>
 
@@ -444,8 +507,11 @@
 
 </div>
 
+
 <script>
   let currentExperiment = null;
+  let currentNotes = [];
+
 
   function escapeHtml(value) {
     return String(value)
@@ -456,13 +522,23 @@
       .replaceAll("'", "&#039;");
   }
 
+
   function getExperimentId() {
-    const params = new URLSearchParams(window.location.search);
+    const params =
+      new URLSearchParams(window.location.search);
+
     return params.get("id");
   }
 
+
+  // ============================================================
+  // LOAD EXPERIMENT
+  // ============================================================
+
   async function loadExperiment() {
-    const workspace = document.getElementById("workspace");
+    const workspace =
+      document.getElementById("workspace");
+
     const id = getExperimentId();
 
     if (!id || !/^\d+$/.test(id)) {
@@ -471,23 +547,27 @@
           Invalid experiment ID.
         </div>
       `;
+
       return;
     }
 
     try {
       const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id)
+        "/api/experiments/" +
+        encodeURIComponent(id)
       );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to load experiment."
+          result.error ||
+          "Unable to load experiment."
         );
       }
 
       currentExperiment = result.experiment;
+
       renderExperiment();
 
     } catch (error) {
@@ -495,16 +575,27 @@
 
       workspace.innerHTML = `
         <div class="error">
-          <strong>Unable to load experiment.</strong>
+          <strong>
+            Unable to load experiment.
+          </strong>
+
           <br><br>
+
           ${escapeHtml(error.message)}
         </div>
       `;
     }
   }
 
+
+  // ============================================================
+  // RENDER EXPERIMENT
+  // ============================================================
+
   function renderExperiment() {
-    const workspace = document.getElementById("workspace");
+    const workspace =
+      document.getElementById("workspace");
+
     const experiment = currentExperiment;
 
     const title = escapeHtml(
@@ -529,11 +620,19 @@
 
     const objective = experiment.objective
       ? escapeHtml(experiment.objective)
-      : '<span class="empty-text">No objective added.</span>';
+      : `
+        <span class="empty-text">
+          No objective added.
+        </span>
+      `;
 
     const protocol = experiment.protocol
       ? escapeHtml(experiment.protocol)
-      : '<span class="empty-text">No protocol added.</span>';
+      : `
+        <span class="empty-text">
+          No protocol added.
+        </span>
+      `;
 
     const tags = String(experiment.tags || "")
       .split(",")
@@ -547,9 +646,14 @@
               `<span class="tag">${escapeHtml(tag)}</span>`
           )
           .join("")
-      : '<span class="empty-text">No tags</span>';
+      : `
+        <span class="empty-text">
+          No tags
+        </span>
+      `;
 
-    document.title = title + " | LabOps AI";
+    document.title =
+      title + " | LabOps AI";
 
     workspace.innerHTML = `
       <div class="header">
@@ -560,7 +664,10 @@
         </div>
 
         <div>
-          <span class="status">${status}</span>
+
+          <span class="status">
+            ${status}
+          </span>
 
           <button
             class="edit-button"
@@ -569,33 +676,50 @@
           >
             Edit Experiment
           </button>
+
         </div>
 
       </div>
+
 
       <div class="grid">
 
         <div>
 
           <section class="panel">
+
             <h2>Objective</h2>
-            <div class="content">${objective}</div>
+
+            <div class="content">
+              ${objective}
+            </div>
+
           </section>
 
+
           <section class="panel">
+
             <h2>Protocol</h2>
-            <div class="content">${protocol}</div>
+
+            <div class="content">
+              ${protocol}
+            </div>
+
           </section>
+
 
           <section class="panel">
 
             <h2>Experiment Log</h2>
 
             <div id="experimentLog">
+
               <div class="no-notes">
                 Loading entries...
               </div>
+
             </div>
+
 
             <div class="note-form">
 
@@ -604,9 +728,11 @@
                 placeholder="Record an observation, result, procedure update, or other experiment note..."
               ></textarea>
 
+
               <div class="note-actions">
 
                 <select id="entryType">
+
                   <option value="Observation">
                     Observation
                   </option>
@@ -626,7 +752,9 @@
                   <option value="General">
                     General
                   </option>
+
                 </select>
+
 
                 <button
                   class="add-note-button"
@@ -643,35 +771,78 @@
 
         </div>
 
+
         <div>
 
           <section class="panel">
 
-            <h2>Experiment Details</h2>
+            <h2>
+              Experiment Details
+            </h2>
+
 
             <div class="detail">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">${status}</div>
+
+              <div class="detail-label">
+                Status
+              </div>
+
+              <div class="detail-value">
+                ${status}
+              </div>
+
             </div>
 
-            <div class="detail">
-              <div class="detail-label">Researcher</div>
-              <div class="detail-value">${researcher}</div>
-            </div>
 
             <div class="detail">
-              <div class="detail-label">Project</div>
-              <div class="detail-value">${project}</div>
+
+              <div class="detail-label">
+                Researcher
+              </div>
+
+              <div class="detail-value">
+                ${researcher}
+              </div>
+
             </div>
 
-            <div class="detail">
-              <div class="detail-label">Start Date</div>
-              <div class="detail-value">${startDate}</div>
-            </div>
 
             <div class="detail">
-              <div class="detail-label">Tags</div>
-              <div class="detail-value">${tagsHtml}</div>
+
+              <div class="detail-label">
+                Project
+              </div>
+
+              <div class="detail-value">
+                ${project}
+              </div>
+
+            </div>
+
+
+            <div class="detail">
+
+              <div class="detail-label">
+                Start Date
+              </div>
+
+              <div class="detail-value">
+                ${startDate}
+              </div>
+
+            </div>
+
+
+            <div class="detail">
+
+              <div class="detail-label">
+                Tags
+              </div>
+
+              <div class="detail-value">
+                ${tagsHtml}
+              </div>
+
             </div>
 
           </section>
@@ -684,101 +855,165 @@
     loadNotes();
   }
 
+
+  // ============================================================
+  // EDIT EXPERIMENT
+  // ============================================================
+
   function showEditForm() {
-    const workspace = document.getElementById("workspace");
+    const workspace =
+      document.getElementById("workspace");
+
     const experiment = currentExperiment;
 
     workspace.innerHTML = `
       <div class="header">
+
         <div>
           <h1>Edit Experiment</h1>
-          <p>Update experiment information.</p>
+          <p>
+            Update experiment information.
+          </p>
         </div>
+
       </div>
+
 
       <section class="panel">
 
         <form id="editForm">
 
           <div class="form-group">
-            <label>Experiment Title</label>
+
+            <label>
+              Experiment Title
+            </label>
 
             <input
               id="title"
               type="text"
-              value="${escapeHtml(experiment.title || "")}"
+              value="${escapeHtml(
+                experiment.title || ""
+              )}"
               required
             >
+
           </div>
 
+
           <div class="form-group">
+
             <label>Project</label>
 
             <input
               id="project"
               type="text"
-              value="${escapeHtml(experiment.project || "")}"
+              value="${escapeHtml(
+                experiment.project || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
+
             <label>Researcher</label>
 
             <input
               id="researcher"
               type="text"
-              value="${escapeHtml(experiment.researcher || "")}"
+              value="${escapeHtml(
+                experiment.researcher || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
+
             <label>Status</label>
 
             <select id="status">
-              <option value="Planning">Planning</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Analysis">Analysis</option>
-              <option value="Completed">Completed</option>
-              <option value="On Hold">On Hold</option>
+
+              <option value="Planning">
+                Planning
+              </option>
+
+              <option value="In Progress">
+                In Progress
+              </option>
+
+              <option value="Analysis">
+                Analysis
+              </option>
+
+              <option value="Completed">
+                Completed
+              </option>
+
+              <option value="On Hold">
+                On Hold
+              </option>
+
             </select>
+
           </div>
 
+
           <div class="form-group">
+
             <label>Start Date</label>
 
             <input
               id="start_date"
               type="date"
-              value="${escapeHtml(experiment.start_date || "")}"
+              value="${escapeHtml(
+                experiment.start_date || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
+
             <label>Objective</label>
 
             <textarea id="objective">${escapeHtml(
               experiment.objective || ""
             )}</textarea>
+
           </div>
 
+
           <div class="form-group">
+
             <label>Protocol</label>
 
             <textarea id="protocol">${escapeHtml(
               experiment.protocol || ""
             )}</textarea>
+
           </div>
 
+
           <div class="form-group">
+
             <label>Tags</label>
 
             <input
               id="tags"
               type="text"
-              value="${escapeHtml(experiment.tags || "")}"
+              value="${escapeHtml(
+                experiment.tags || ""
+              )}"
               placeholder="hydrogel, cell culture, microscopy"
             >
+
           </div>
+
 
           <div class="edit-actions">
 
@@ -788,6 +1023,7 @@
             >
               Save Changes
             </button>
+
 
             <button
               type="button"
@@ -809,8 +1045,12 @@
 
     document
       .getElementById("editForm")
-      .addEventListener("submit", saveExperiment);
+      .addEventListener(
+        "submit",
+        saveExperiment
+      );
   }
+
 
   async function saveExperiment(event) {
     event.preventDefault();
@@ -818,19 +1058,35 @@
     const id = getExperimentId();
 
     const data = {
-      title: document.getElementById("title").value,
-      project: document.getElementById("project").value,
-      researcher: document.getElementById("researcher").value,
-      status: document.getElementById("status").value,
-      start_date: document.getElementById("start_date").value,
-      objective: document.getElementById("objective").value,
-      protocol: document.getElementById("protocol").value,
-      tags: document.getElementById("tags").value
+      title:
+        document.getElementById("title").value,
+
+      project:
+        document.getElementById("project").value,
+
+      researcher:
+        document.getElementById("researcher").value,
+
+      status:
+        document.getElementById("status").value,
+
+      start_date:
+        document.getElementById("start_date").value,
+
+      objective:
+        document.getElementById("objective").value,
+
+      protocol:
+        document.getElementById("protocol").value,
+
+      tags:
+        document.getElementById("tags").value
     };
 
     try {
       const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id),
+        "/api/experiments/" +
+        encodeURIComponent(id),
         {
           method: "PUT",
 
@@ -846,7 +1102,8 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to save experiment."
+          result.error ||
+          "Unable to save experiment."
         );
       }
 
@@ -858,8 +1115,14 @@
     }
   }
 
+
+  // ============================================================
+  // LOAD NOTES
+  // ============================================================
+
   async function loadNotes() {
     const id = getExperimentId();
+
     const container =
       document.getElementById("experimentLog");
 
@@ -883,62 +1146,9 @@
         );
       }
 
-      const notes = result.notes || [];
+      currentNotes = result.notes || [];
 
-      if (notes.length === 0) {
-        container.innerHTML = `
-          <div class="no-notes">
-            No experiment entries yet.
-          </div>
-        `;
-
-        return;
-      }
-
-      container.innerHTML = notes
-        .map(note => {
-
-          const type = escapeHtml(
-            note.entry_type || "Observation"
-          );
-
-          const noteText = escapeHtml(
-            note.note || ""
-          );
-
-          let date = "";
-
-          if (note.created_at) {
-            const parsedDate = new Date(
-              note.created_at.replace(" ", "T") + "Z"
-            );
-
-            date = parsedDate.toLocaleString();
-          }
-
-          return `
-            <div class="log-entry">
-
-              <div class="log-header">
-
-                <span class="log-type">
-                  ${type}
-                </span>
-
-                <span class="log-date">
-                  ${escapeHtml(date)}
-                </span>
-
-              </div>
-
-              <div class="log-text">
-                ${noteText}
-              </div>
-
-            </div>
-          `;
-        })
-        .join("");
+      renderNotes();
 
     } catch (error) {
       console.error(error);
@@ -950,6 +1160,107 @@
       `;
     }
   }
+
+
+  // ============================================================
+  // RENDER NOTES
+  // ============================================================
+
+  function renderNotes() {
+    const container =
+      document.getElementById("experimentLog");
+
+    if (!container) {
+      return;
+    }
+
+    if (currentNotes.length === 0) {
+      container.innerHTML = `
+        <div class="no-notes">
+          No experiment entries yet.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML = currentNotes
+      .map(note => {
+
+        const type = escapeHtml(
+          note.entry_type || "Observation"
+        );
+
+        const noteText = escapeHtml(
+          note.note || ""
+        );
+
+        let date = "";
+
+        if (note.created_at) {
+          const parsedDate = new Date(
+            note.created_at.replace(" ", "T") + "Z"
+          );
+
+          date = parsedDate.toLocaleString();
+        }
+
+        return `
+          <div
+            class="log-entry"
+            id="note-${note.id}"
+          >
+
+            <div class="log-header">
+
+              <div class="log-meta">
+
+                <span class="log-type">
+                  ${type}
+                </span>
+
+                <span class="log-date">
+                  ${escapeHtml(date)}
+                </span>
+
+              </div>
+
+
+              <div class="log-controls">
+
+                <button
+                  class="log-edit-button"
+                  onclick="editNote(${note.id})"
+                >
+                  Edit
+                </button>
+
+                <button
+                  class="log-delete-button"
+                  onclick="deleteNote(${note.id})"
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div class="log-text">
+              ${noteText}
+            </div>
+
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+
+  // ============================================================
+  // ADD NOTE
+  // ============================================================
 
   async function addNote() {
     const id = getExperimentId();
@@ -990,7 +1301,8 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to add entry."
+          result.error ||
+          "Unable to add entry."
         );
       }
 
@@ -1003,6 +1315,203 @@
       alert(error.message);
     }
   }
+
+
+  // ============================================================
+  // SHOW NOTE EDITOR
+  // ============================================================
+
+  function editNote(noteId) {
+    const note = currentNotes.find(
+      item => Number(item.id) === Number(noteId)
+    );
+
+    if (!note) {
+      return;
+    }
+
+    const container =
+      document.getElementById(
+        "note-" + noteId
+      );
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = `
+      <textarea
+        class="log-edit-textarea"
+        id="edit-note-${noteId}"
+      >${escapeHtml(note.note || "")}</textarea>
+
+
+      <div class="log-edit-actions">
+
+        <select
+          class="log-edit-select"
+          id="edit-type-${noteId}"
+        >
+
+          <option value="Observation">
+            Observation
+          </option>
+
+          <option value="Result">
+            Result
+          </option>
+
+          <option value="Procedure">
+            Procedure
+          </option>
+
+          <option value="Issue">
+            Issue
+          </option>
+
+          <option value="General">
+            General
+          </option>
+
+        </select>
+
+
+        <button
+          class="log-save-button"
+          onclick="saveNote(${noteId})"
+        >
+          Save
+        </button>
+
+
+        <button
+          class="log-cancel-button"
+          onclick="renderNotes()"
+        >
+          Cancel
+        </button>
+
+      </div>
+    `;
+
+    document.getElementById(
+      "edit-type-" + noteId
+    ).value =
+      note.entry_type || "Observation";
+  }
+
+
+  // ============================================================
+  // SAVE EDITED NOTE
+  // ============================================================
+
+  async function saveNote(noteId) {
+    const experimentId =
+      getExperimentId();
+
+    const textarea =
+      document.getElementById(
+        "edit-note-" + noteId
+      );
+
+    const typeSelect =
+      document.getElementById(
+        "edit-type-" + noteId
+      );
+
+    const note = textarea.value.trim();
+
+    if (!note) {
+      alert("Entry cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(experimentId) +
+        "/notes/" +
+        encodeURIComponent(noteId),
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            note: note,
+            entry_type: typeSelect.value
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to update entry."
+        );
+      }
+
+      await loadNotes();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  // ============================================================
+  // DELETE NOTE
+  // ============================================================
+
+  async function deleteNote(noteId) {
+    const confirmed = confirm(
+      "Delete this experiment log entry? This cannot be undone."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const experimentId =
+      getExperimentId();
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(experimentId) +
+        "/notes/" +
+        encodeURIComponent(noteId),
+        {
+          method: "DELETE"
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to delete entry."
+        );
+      }
+
+      await loadNotes();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  // ============================================================
+  // START
+  // ============================================================
 
   loadExperiment();
 </script>
