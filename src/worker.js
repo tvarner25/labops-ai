@@ -343,6 +343,132 @@ if (
   }
 }
     // --------------------------------
+// GET EXPERIMENT NOTES
+// --------------------------------
+
+if (
+  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
+  request.method === "GET"
+) {
+  try {
+    const parts = url.pathname.split("/");
+    const experimentId = parts[3];
+
+    const { results } = await env.DB.prepare(
+      `SELECT
+        id,
+        experiment_id,
+        note,
+        entry_type,
+        created_at,
+        updated_at
+      FROM experiment_notes
+      WHERE experiment_id = ?
+      ORDER BY created_at DESC, id DESC`
+    )
+      .bind(experimentId)
+      .all();
+
+    return Response.json({
+      success: true,
+      notes: results
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        success: false,
+        error: "Unable to load experiment notes."
+      },
+      { status: 500 }
+    );
+  }
+}
+
+
+// --------------------------------
+// CREATE EXPERIMENT NOTE
+// --------------------------------
+
+if (
+  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
+  request.method === "POST"
+) {
+  try {
+    const parts = url.pathname.split("/");
+    const experimentId = parts[3];
+
+    const data = await request.json();
+
+    const note = String(data.note || "").trim();
+    const entryType = String(
+      data.entry_type || "Observation"
+    ).trim();
+
+    if (!note) {
+      return Response.json(
+        {
+          success: false,
+          error: "Note cannot be empty."
+        },
+        { status: 400 }
+      );
+    }
+
+    const experiment = await env.DB.prepare(
+      `SELECT id
+       FROM experiments
+       WHERE id = ?`
+    )
+      .bind(experimentId)
+      .first();
+
+    if (!experiment) {
+      return Response.json(
+        {
+          success: false,
+          error: "Experiment not found."
+        },
+        { status: 404 }
+      );
+    }
+
+    const result = await env.DB.prepare(
+      `INSERT INTO experiment_notes
+        (
+          experiment_id,
+          note,
+          entry_type
+        )
+       VALUES (?, ?, ?)`
+    )
+      .bind(
+        experimentId,
+        note,
+        entryType
+      )
+      .run();
+
+    return Response.json({
+      success: true,
+      noteId: result.meta.last_row_id
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        success: false,
+        error: "Unable to create experiment note."
+      },
+      { status: 500 }
+    );
+  }
+}
+    // --------------------------------
     // STATIC WEBSITE
     // --------------------------------
 
