@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Experiment | LabOps AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #274e13;
+      --green-dark: #19360b;
+      --green-light: #eaf1e6;
+      --background: #f6f8f5;
+      --white: #ffffff;
+      --text: #172116;
+      --muted: #6c766a;
+      --border: #dfe5dc;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--green-dark);
+      color: white;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 42px;
+    }
+
+    .logo span {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 13px 14px;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .nav a:hover {
+      background: rgba(255,255,255,0.12);
+      color: white;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 38px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: var(--green);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .page-header h1 {
+      font-size: 30px;
+      margin-bottom: 7px;
+    }
+
+    .page-header p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .form-card {
+      max-width: 850px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 30px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .required {
+      color: #a23b2a;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      color: var(--text);
+      background: white;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-light);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+
+    #protocol {
+      min-height: 170px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .cancel {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .save {
+      border: none;
+      background: var(--green);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .save:hover {
+      background: var(--green-dark);
+    }
+
+    .save:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .message {
+      display: none;
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .message.error {
+      display: block;
+      background: #fff0ed;
+      color: #8c2d1d;
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .form-card {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">LabOps <span>AI</span></div>
+
+    <nav class="nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="#">Experiments</a>
+      <a href="#">Inventory</a>
+      <a href="#">Tasks</a>
+      <a href="#">AI Assistant</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      LabOps AI<br>
+      Research operations workspace
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <a class="back-link" href="/dashboard.html">← Back to Dashboard</a>
+
+      <h1>New Experiment</h1>
+      <p>Create a new experiment and add it to your laboratory workspace.</p>
+    </div>
+
+    <div class="form-card">
+
+      <form id="experimentForm">
+
+        <div class="form-grid">
+
+          <div class="field full">
+            <label for="title">
+              Experiment Title <span class="required">*</span>
+            </label>
+
+            <input
+              id="title"
+              name="title"
+              type="text"
+              placeholder="e.g. Hydrogel Cell Viability Study"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="project">Project / Category</label>
+
+            <input
+              id="project"
+              name="project"
+              type="text"
+              placeholder="e.g. Tissue Engineering"
+            >
+          </div>
+
+          <div class="field">
+            <label for="researcher">Researcher</label>
+
+            <input
+              id="researcher"
+              name="researcher"
+              type="text"
+              placeholder="Researcher name"
+            >
+          </div>
+
+          <div class="field">
+            <label for="status">Status</label>
+
+            <select id="status" name="status">
+              <option value="Planning">Planning</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Analysis">Analysis</option>
+              <option value="Completed">Completed</option>
+              <option value="On Hold">On Hold</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="start_date">Start Date</label>
+
+            <input
+              id="start_date"
+              name="start_date"
+              type="date"
+            >
+          </div>
+
+          <div class="field full">
+            <label for="objective">Objective</label>
+
+            <textarea
+              id="objective"
+              name="objective"
+              placeholder="What is the goal or hypothesis of this experiment?"
+            ></textarea>
+          </div>
+
+          <div class="field full">
+            <label for="protocol">Protocol / Experimental Notes</label>
+
+            <textarea
+              id="protocol"
+              name="protocol"
+              placeholder="Enter the experimental procedure, conditions, materials, or other notes..."
+            ></textarea>
+          </div>
+
+          <div class="field full">
+            <label for="tags">Tags</label>
+
+            <input
+              id="tags"
+              name="tags"
+              type="text"
+              placeholder="e.g. hydrogel, fibroblasts, viability, biomaterials"
+            >
+
+            <div class="hint">
+              Separate tags with commas.
+            </div>
+          </div>
+
+        </div>
+
+        <div id="formMessage" class="message"></div>
+
+        <div class="form-actions">
+          <a href="/dashboard.html" class="cancel">Cancel</a>
+
+          <button type="submit" class="save">
+            Create Experiment
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script>
+  document
+    .getElementById("experimentForm")
+    .addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const form = event.currentTarget;
+      const button = form.querySelector('button[type="submit"]');
+      const message = document.getElementById("formMessage");
+
+      const data = {
+        title: document.getElementById("title").value.trim(),
+        project: document.getElementById("project").value.trim(),
+        objective: document.getElementById("objective").value.trim(),
+        protocol: document.getElementById("protocol").value.trim(),
+        researcher: document.getElementById("researcher").value.trim(),
+        status: document.getElementById("status").value,
+        start_date: document.getElementById("start_date").value,
+        tags: document.getElementById("tags").value.trim()
+      };
+
+      button.disabled = true;
+      button.textContent = "Creating...";
+      message.className = "message";
+      message.textContent = "";
+
+      try {
+        const response = await fetch("/api/experiments", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "Unable to create experiment.");
+        }
+
+        window.location.href = "/dashboard.html";
+
+      } catch (error) {
+        message.textContent =
+          error.message || "Unable to create experiment. Please try again.";
+
+        message.className = "message error";
+
+        button.disabled = false;
+        button.textContent = "Create Experiment";
+      }
+    });
+</script>
+
+</body>
+</html>
