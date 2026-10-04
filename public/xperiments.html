@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experiments | LabOps AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #274e13;
+      --green-dark: #19360b;
+      --green-light: #eaf1e6;
+      --background: #f6f8f5;
+      --white: #ffffff;
+      --text: #172116;
+      --muted: #6c766a;
+      --border: #dfe5dc;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--green-dark);
+      color: white;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 42px;
+    }
+
+    .logo span {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 13px 14px;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: rgba(255,255,255,0.12);
+      color: white;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 38px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 20px;
+    }
+
+    .topbar h1 {
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .topbar p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .new-button {
+      border: none;
+      background: var(--green);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .new-button:hover {
+      background: var(--green-dark);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search {
+      flex: 1;
+      max-width: 500px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font: inherit;
+      outline: none;
+      background: white;
+    }
+
+    .search:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-light);
+    }
+
+    .filter {
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: white;
+      color: var(--text);
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .experiment {
+      display: grid;
+      grid-template-columns: minmax(240px, 2fr) 1fr 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .experiment:last-child {
+      border-bottom: none;
+    }
+
+    .experiment:hover {
+      background: #fafbf9;
+    }
+
+    .experiment h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .experiment p,
+    .meta-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .meta-value {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .status {
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--green-light);
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    .empty {
+      padding: 45px 25px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty h3 {
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 850px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .main {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+        padding: 25px;
+      }
+
+      .experiment {
+        grid-template-columns: 1fr auto;
+      }
+
+      .experiment-meta {
+        display: none;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .search {
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      LabOps <span>AI</span>
+    </div>
+
+    <nav class="nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/experiments.html" class="active">Experiments</a>
+      <a href="#">Inventory</a>
+      <a href="#">Tasks</a>
+      <a href="#">AI Assistant</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      LabOps AI<br>
+      Research operations workspace
+    </div>
+
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+
+      <div>
+        <h1>Experiments</h1>
+        <p>Manage and track your laboratory experiments.</p>
+      </div>
+
+      <button
+        class="new-button"
+        onclick="window.location.href='/new-experiment.html'"
+      >
+        + New Experiment
+      </button>
+
+    </div>
+
+    <div class="toolbar">
+
+      <input
+        id="searchInput"
+        class="search"
+        type="search"
+        placeholder="Search experiments..."
+      >
+
+      <select id="statusFilter" class="filter">
+        <option value="">All statuses</option>
+        <option value="Planning">Planning</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Analysis">Analysis</option>
+        <option value="Completed">Completed</option>
+        <option value="On Hold">On Hold</option>
+      </select>
+
+    </div>
+
+    <section class="panel" id="experimentsList">
+
+      <div class="empty">
+        Loading experiments...
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script>
+  let experiments = [];
+
+  async function loadExperiments() {
+    const container = document.getElementById("experimentsList");
+
+    try {
+      const response = await fetch("/api/experiments");
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error("Unable to load experiments.");
+      }
+
+      experiments = result.experiments || [];
+
+      renderExperiments();
+
+    } catch (error) {
+      console.error(error);
+
+      container.innerHTML = `
+        <div class="empty">
+          <h3>Unable to load experiments</h3>
+          <p>Please refresh the page and try again.</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderExperiments() {
+    const container = document.getElementById("experimentsList");
+
+    const search =
+      document.getElementById("searchInput").value
+        .trim()
+        .toLowerCase();
+
+    const status =
+      document.getElementById("statusFilter").value;
+
+    const filtered = experiments.filter((experiment) => {
+      const searchable = [
+        experiment.title,
+        experiment.project,
+        experiment.researcher,
+        experiment.tags
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        !search || searchable.includes(search);
+
+      const matchesStatus =
+        !status || experiment.status === status;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="empty">
+          <h3>No experiments found</h3>
+          <p>
+            ${
+              experiments.length === 0
+                ? "Create your first experiment to get started."
+                : "Try changing your search or status filter."
+            }
+          </p>
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map((experiment) => {
+        const id = Number(experiment.id);
+
+        const title =
+          escapeHtml(experiment.title || "Untitled Experiment");
+
+        const project =
+          escapeHtml(experiment.project || "Uncategorized");
+
+        const researcher =
+          escapeHtml(experiment.researcher || "Not assigned");
+
+        const status =
+          escapeHtml(experiment.status || "Planning");
+
+        const date =
+          escapeHtml(experiment.start_date || "Not set");
+
+        return `
+          <div
+            class="experiment"
+            onclick="openExperiment(${id})"
+          >
+
+            <div>
+              <h3>${title}</h3>
+              <p>${project}</p>
+            </div>
+
+            <div class="experiment-meta">
+              <div class="meta-label">Researcher</div>
+              <div class="meta-value">${researcher}</div>
+            </div>
+
+            <div class="experiment-meta">
+              <div class="meta-label">Start Date</div>
+              <div class="meta-value">${date}</div>
+            </div>
+
+            <span class="status">${status}</span>
+
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function openExperiment(id) {
+    window.location.href =
+      "/experiment.html?id=" + encodeURIComponent(id);
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  document
+    .getElementById("searchInput")
+    .addEventListener("input", renderExperiments);
+
+  document
+    .getElementById("statusFilter")
+    .addEventListener("change", renderExperiments);
+
+  loadExperiments();
+</script>
+
+</body>
+</html>
