@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | LabOps AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #274e13;
+      --green-dark: #19360b;
+      --green-light: #eaf1e6;
+      --background: #f6f8f5;
+      --white: #ffffff;
+      --text: #172116;
+      --muted: #6c766a;
+      --border: #dfe5dc;
+      --warning: #fff5dd;
+      --warning-text: #8a5a00;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+      width: 250px;
+      background: var(--green-dark);
+      color: white;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 42px;
+    }
+
+    .logo span {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 13px 14px;
+      border-radius: 9px;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: rgba(255,255,255,0.12);
+      color: white;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    /* MAIN */
+
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 38px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 34px;
+    }
+
+    .topbar h1 {
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .topbar p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .new-experiment {
+      border: none;
+      background: var(--green);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .new-experiment:hover {
+      background: var(--green-dark);
+    }
+
+    /* STAT CARDS */
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    .stat-description {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .alert-number {
+      color: #a26300;
+    }
+
+    /* CONTENT */
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 22px;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header h2 {
+      font-size: 17px;
+    }
+
+    .panel-header a {
+      color: var(--green);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* EXPERIMENTS */
+
+    .experiment {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .experiment:last-child {
+      border-bottom: none;
+    }
+
+    .experiment h3 {
+      font-size: 15px;
+      margin-bottom: 5px;
+    }
+
+    .experiment p {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .status.pending {
+      background: #f1f1f1;
+      color: #666;
+    }
+
+    /* TASKS */
+
+    .task {
+      padding: 17px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task:last-child {
+      border-bottom: none;
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .task-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .task.urgent {
+      background: var(--warning);
+    }
+
+    .task.urgent .task-meta {
+      color: var(--warning-text);
+    }
+
+    /* AI CARD */
+
+    .ai-card {
+      margin-top: 22px;
+      background: var(--green-dark);
+      color: white;
+      padding: 24px;
+      border-radius: 14px;
+    }
+
+    .ai-card h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .ai-card p {
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .ai-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ai-input input {
+      flex: 1;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+
+    .ai-input button {
+      border: none;
+      background: white;
+      color: var(--green-dark);
+      padding: 0 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .main {
+        margin-left: 200px;
+        width: calc(100% - 200px);
+        padding: 25px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .new-experiment {
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      LabOps <span>AI</span>
+    </div>
+
+    <nav class="nav">
+      <a href="/dashboard.html" class="active">Dashboard</a>
+      <a href="#">Experiments</a>
+      <a href="#">Inventory</a>
+      <a href="#">Tasks</a>
+      <a href="#">AI Assistant</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      LabOps AI<br>
+      Research operations workspace
+    </div>
+
+  </aside>
+
+
+  <main class="main">
+
+    <div class="topbar">
+
+      <div>
+        <h1>Lab Dashboard</h1>
+        <p>Monitor experiments, tasks, and laboratory operations.</p>
+      </div>
+
+      <button class="new-experiment">
+        + New Experiment
+      </button>
+
+    </div>
+
+
+    <section class="stats">
+
+      <div class="stat-card">
+        <div class="stat-label">ACTIVE EXPERIMENTS</div>
+        <div class="stat-number">4</div>
+        <div class="stat-description">2 updated today</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">TASKS DUE</div>
+        <div class="stat-number">7</div>
+        <div class="stat-description">3 due today</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">INVENTORY ITEMS</div>
+        <div class="stat-number">126</div>
+        <div class="stat-description">Across 8 storage locations</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">INVENTORY ALERTS</div>
+        <div class="stat-number alert-number">3</div>
+        <div class="stat-description">Require attention</div>
+      </div>
+
+    </section>
+
+
+    <div class="dashboard-grid">
+
+      <section class="panel">
+
+        <div class="panel-header">
+          <h2>Active Experiments</h2>
+          <a href="#">View all</a>
+        </div>
+
+        <div class="experiment">
+          <div>
+            <h3>Hydrogel Cell Viability Study</h3>
+            <p>Updated today · Cell Culture</p>
+          </div>
+          <span class="status">In Progress</span>
+        </div>
+
+        <div class="experiment">
+          <div>
+            <h3>Protein Expression Optimization</h3>
+            <p>Updated yesterday · Molecular Biology</p>
+          </div>
+          <span class="status">In Progress</span>
+        </div>
+
+        <div class="experiment">
+          <div>
+            <h3>Scaffold Mechanical Testing</h3>
+            <p>Updated Oct 2 · Tissue Engineering</p>
+          </div>
+          <span class="status pending">Analysis</span>
+        </div>
+
+        <div class="experiment">
+          <div>
+            <h3>ROS Fluorescence Assay</h3>
+            <p>Updated Sep 30 · Biochemistry</p>
+          </div>
+          <span class="status">In Progress</span>
+        </div>
+
+      </section>
+
+
+      <section class="panel">
+
+        <div class="panel-header">
+          <h2>Upcoming Tasks</h2>
+          <a href="#">View all</a>
+        </div>
+
+        <div class="task urgent">
+          <div class="task-title">Check cell cultures</div>
+          <div class="task-meta">Due today · 2:00 PM</div>
+        </div>
+
+        <div class="task">
+          <div class="task-title">Record hydrogel measurements</div>
+          <div class="task-meta">Due today · 5:00 PM</div>
+        </div>
+
+        <div class="task">
+          <div class="task-title">Prepare assay reagents</div>
+          <div class="task-meta">Tomorrow</div>
+        </div>
+
+        <div class="task">
+          <div class="task-title">Review microscopy images</div>
+          <div class="task-meta">Oct 6</div>
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <section class="ai-card">
+
+      <h2>LabOps AI Assistant</h2>
+
+      <p>
+        Ask questions about your experiments, inventory, protocols,
+        results, or upcoming laboratory work.
+      </p>
+
+      <div class="ai-input">
+        <input
+          type="text"
+          placeholder="Ask LabOps AI about your lab..."
+        >
+        <button>Ask</button>
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+</body>
+</html>
