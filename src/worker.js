@@ -173,6 +173,50 @@ if (url.pathname === "/api/experiments" && request.method === "GET") {
   }
 }
 
+    // --------------------------------
+// GET EXPERIMENT NOTES
+// --------------------------------
+
+if (
+  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
+  request.method === "GET"
+) {
+  try {
+    const parts = url.pathname.split("/");
+    const experimentId = parts[3];
+
+    const { results } = await env.DB.prepare(
+      `SELECT
+        id,
+        experiment_id,
+        note,
+        entry_type,
+        created_at,
+        updated_at
+      FROM experiment_notes
+      WHERE experiment_id = ?
+      ORDER BY created_at DESC, id DESC`
+    )
+      .bind(experimentId)
+      .all();
+
+    return Response.json({
+      success: true,
+      notes: results
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        success: false,
+        error: "Unable to load experiment notes."
+      },
+      { status: 500 }
+    );
+  }
+}
 
 // --------------------------------
 // GET SINGLE EXPERIMENT
@@ -337,50 +381,6 @@ if (
       {
         success: false,
         error: "Unable to update experiment."
-      },
-      { status: 500 }
-    );
-  }
-}
-    // --------------------------------
-// GET EXPERIMENT NOTES
-// --------------------------------
-
-if (
-  url.pathname.match(/^\/api\/experiments\/\d+\/notes$/) &&
-  request.method === "GET"
-) {
-  try {
-    const parts = url.pathname.split("/");
-    const experimentId = parts[3];
-
-    const { results } = await env.DB.prepare(
-      `SELECT
-        id,
-        experiment_id,
-        note,
-        entry_type,
-        created_at,
-        updated_at
-      FROM experiment_notes
-      WHERE experiment_id = ?
-      ORDER BY created_at DESC, id DESC`
-    )
-      .bind(experimentId)
-      .all();
-
-    return Response.json({
-      success: true,
-      notes: results
-    });
-
-  } catch (error) {
-    console.error(error);
-
-    return Response.json(
-      {
-        success: false,
-        error: "Unable to load experiment notes."
       },
       { status: 500 }
     );
