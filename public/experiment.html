@@ -379,6 +379,141 @@
       border-radius: 9px;
     }
 
+    /* VISUALIZATION */
+
+    .visualization-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .visualization-controls label {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .visualization-controls select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font: inherit;
+      min-width: 220px;
+    }
+
+    .chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .chart-unit {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .chart {
+      display: flex;
+      align-items: stretch;
+      min-height: 300px;
+    }
+
+    .y-axis {
+      width: 60px;
+      min-width: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: right;
+      padding-right: 10px;
+      padding-bottom: 40px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .chart-main {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .chart-area {
+      height: 260px;
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      padding: 0 16px;
+    }
+
+    .grid-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px dashed #e4e8e1;
+      pointer-events: none;
+    }
+
+    .bar-group {
+      flex: 1;
+      min-width: 55px;
+      max-width: 120px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .bar-value {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .bar {
+      width: 70%;
+      min-width: 28px;
+      max-width: 65px;
+      background: var(--green);
+      border-radius: 6px 6px 0 0;
+      transition: height 0.25s ease;
+      min-height: 2px;
+    }
+
+    .x-labels {
+      display: flex;
+      gap: 14px;
+      padding: 8px 16px 0;
+    }
+
+    .x-label {
+      flex: 1;
+      min-width: 55px;
+      max-width: 120px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .chart-scroll {
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+
+    .chart-scroll-inner {
+      min-width: 500px;
+    }
+
     /* LOG */
 
     .log-entry {
@@ -595,7 +730,6 @@
 
 </div>
 
-
 <script>
   let currentExperiment = null;
   let currentNotes = [];
@@ -619,9 +753,7 @@
 
 
   function formatDate(value) {
-    if (!value) {
-      return "";
-    }
+    if (!value) return "";
 
     const parsed = new Date(
       value.replace(" ", "T") + "Z"
@@ -636,9 +768,7 @@
   // ============================================================
 
   async function loadExperiment() {
-    const workspace =
-      document.getElementById("workspace");
-
+    const workspace = document.getElementById("workspace");
     const id = getExperimentId();
 
     if (!id || !/^\d+$/.test(id)) {
@@ -652,16 +782,14 @@
 
     try {
       const response = await fetch(
-        "/api/experiments/" +
-        encodeURIComponent(id)
+        "/api/experiments/" + encodeURIComponent(id)
       );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to load experiment."
+          result.error || "Unable to load experiment."
         );
       }
 
@@ -683,9 +811,7 @@
 
 
   function renderExperiment() {
-    const workspace =
-      document.getElementById("workspace");
-
+    const workspace = document.getElementById("workspace");
     const experiment = currentExperiment;
 
     const title = escapeHtml(
@@ -723,13 +849,11 @@
 
     const tagsHtml = tags.length
       ? tags.map(
-          tag =>
-            `<span class="tag">${escapeHtml(tag)}</span>`
+          tag => `<span class="tag">${escapeHtml(tag)}</span>`
         ).join("")
       : '<span class="empty-text">No tags</span>';
 
-    document.title =
-      title + " | LabOps AI";
+    document.title = title + " | LabOps AI";
 
     workspace.innerHTML = `
       <div class="header">
@@ -740,9 +864,7 @@
         </div>
 
         <div>
-          <span class="status">
-            ${status}
-          </span>
+          <span class="status">${status}</span>
 
           <button
             class="edit-button"
@@ -755,26 +877,19 @@
 
       </div>
 
-
       <div class="grid">
 
         <div>
 
           <section class="panel">
             <h2>Objective</h2>
-            <div class="content">
-              ${objective}
-            </div>
+            <div class="content">${objective}</div>
           </section>
-
 
           <section class="panel">
             <h2>Protocol</h2>
-            <div class="content">
-              ${protocol}
-            </div>
+            <div class="content">${protocol}</div>
           </section>
-
 
           <section class="panel">
 
@@ -789,7 +904,6 @@
                 Loading results...
               </div>
             </div>
-
 
             <div class="result-form">
 
@@ -841,6 +955,25 @@
 
           <section class="panel">
 
+            <h2>Data Visualization</h2>
+
+            <div class="panel-subtitle">
+              Automatically generated from your structured results.
+            </div>
+
+            <div id="visualizationContainer">
+
+              <div class="no-data">
+                Add results to generate a visualization.
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <section class="panel">
+
             <h2>Experiment Log</h2>
 
             <div id="experimentLog">
@@ -848,7 +981,6 @@
                 Loading entries...
               </div>
             </div>
-
 
             <div class="note-form">
 
@@ -860,25 +992,11 @@
               <div class="note-actions">
 
                 <select id="entryType">
-                  <option value="Observation">
-                    Observation
-                  </option>
-
-                  <option value="Result">
-                    Result
-                  </option>
-
-                  <option value="Procedure">
-                    Procedure
-                  </option>
-
-                  <option value="Issue">
-                    Issue
-                  </option>
-
-                  <option value="General">
-                    General
-                  </option>
+                  <option value="Observation">Observation</option>
+                  <option value="Result">Result</option>
+                  <option value="Procedure">Procedure</option>
+                  <option value="Issue">Issue</option>
+                  <option value="General">General</option>
                 </select>
 
                 <button
@@ -904,48 +1022,28 @@
             <h2>Experiment Details</h2>
 
             <div class="detail">
-              <div class="detail-label">
-                Status
-              </div>
-              <div class="detail-value">
-                ${status}
-              </div>
+              <div class="detail-label">Status</div>
+              <div class="detail-value">${status}</div>
             </div>
 
             <div class="detail">
-              <div class="detail-label">
-                Researcher
-              </div>
-              <div class="detail-value">
-                ${researcher}
-              </div>
+              <div class="detail-label">Researcher</div>
+              <div class="detail-value">${researcher}</div>
             </div>
 
             <div class="detail">
-              <div class="detail-label">
-                Project
-              </div>
-              <div class="detail-value">
-                ${project}
-              </div>
+              <div class="detail-label">Project</div>
+              <div class="detail-value">${project}</div>
             </div>
 
             <div class="detail">
-              <div class="detail-label">
-                Start Date
-              </div>
-              <div class="detail-value">
-                ${startDate}
-              </div>
+              <div class="detail-label">Start Date</div>
+              <div class="detail-value">${startDate}</div>
             </div>
 
             <div class="detail">
-              <div class="detail-label">
-                Tags
-              </div>
-              <div class="detail-value">
-                ${tagsHtml}
-              </div>
+              <div class="detail-label">Tags</div>
+              <div class="detail-value">${tagsHtml}</div>
             </div>
 
           </section>
@@ -965,9 +1063,7 @@
   // ============================================================
 
   function showEditForm() {
-    const workspace =
-      document.getElementById("workspace");
-
+    const workspace = document.getElementById("workspace");
     const experiment = currentExperiment;
 
     workspace.innerHTML = `
@@ -1083,10 +1179,7 @@
 
     document
       .getElementById("editForm")
-      .addEventListener(
-        "submit",
-        saveExperiment
-      );
+      .addEventListener("submit", saveExperiment);
   }
 
 
@@ -1108,8 +1201,7 @@
 
     try {
       const response = await fetch(
-        "/api/experiments/" +
-        encodeURIComponent(id),
+        "/api/experiments/" + encodeURIComponent(id),
         {
           method: "PUT",
           headers: {
@@ -1123,8 +1215,7 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to save experiment."
+          result.error || "Unable to save experiment."
         );
       }
 
@@ -1143,13 +1234,10 @@
 
   async function loadResults() {
     const id = getExperimentId();
-
     const container =
       document.getElementById("resultsContainer");
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     try {
       const response = await fetch(
@@ -1162,14 +1250,14 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to load results."
+          result.error || "Unable to load results."
         );
       }
 
       currentResults = result.results || [];
 
       renderResults();
+      renderVisualization();
 
     } catch (error) {
       console.error(error);
@@ -1187,9 +1275,7 @@
     const container =
       document.getElementById("resultsContainer");
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     if (currentResults.length === 0) {
       container.innerHTML = `
@@ -1346,8 +1432,7 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to add result."
+          result.error || "Unable to add result."
         );
       }
 
@@ -1368,13 +1453,10 @@
 
   function editResult(resultId) {
     const result = currentResults.find(
-      item =>
-        Number(item.id) === Number(resultId)
+      item => Number(item.id) === Number(resultId)
     );
 
-    if (!result) {
-      return;
-    }
+    if (!result) return;
 
     const container =
       document.getElementById("resultsContainer");
@@ -1509,8 +1591,7 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to update result."
+          result.error || "Unable to update result."
         );
       }
 
@@ -1528,9 +1609,7 @@
       "Delete this result? This cannot be undone."
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     const experimentId = getExperimentId();
 
@@ -1549,8 +1628,7 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to delete result."
+          result.error || "Unable to delete result."
         );
       }
 
@@ -1564,6 +1642,320 @@
 
 
   // ============================================================
+  // DATA VISUALIZATION
+  // ============================================================
+
+  function getMeasurementGroups() {
+    const groups = {};
+
+    currentResults.forEach(result => {
+      const measurement =
+        String(result.measurement || "").trim();
+
+      const unit =
+        String(result.unit || "").trim();
+
+      if (!measurement) return;
+
+      const key =
+        measurement.toLowerCase() +
+        "||" +
+        unit.toLowerCase();
+
+      if (!groups[key]) {
+        groups[key] = {
+          key,
+          measurement,
+          unit,
+          results: []
+        };
+      }
+
+      groups[key].results.push(result);
+    });
+
+    return Object.values(groups);
+  }
+
+
+  function renderVisualization(selectedKey = null) {
+    const container =
+      document.getElementById(
+        "visualizationContainer"
+      );
+
+    if (!container) return;
+
+    const groups = getMeasurementGroups();
+
+    if (groups.length === 0) {
+      container.innerHTML = `
+        <div class="no-data">
+          Add structured results to generate a visualization.
+        </div>
+      `;
+      return;
+    }
+
+    let selectedGroup =
+      groups.find(group => group.key === selectedKey);
+
+    if (!selectedGroup) {
+      selectedGroup = groups[0];
+    }
+
+    const options = groups
+      .map(group => {
+        const label = group.unit
+          ? `${group.measurement} (${group.unit})`
+          : group.measurement;
+
+        return `
+          <option
+            value="${escapeHtml(group.key)}"
+            ${
+              group.key === selectedGroup.key
+                ? "selected"
+                : ""
+            }
+          >
+            ${escapeHtml(label)}
+          </option>
+        `;
+      })
+      .join("");
+
+    container.innerHTML = `
+      <div class="visualization-controls">
+
+        <label for="measurementSelector">
+          Measurement
+        </label>
+
+        <select
+          id="measurementSelector"
+          onchange="changeVisualization()"
+        >
+          ${options}
+        </select>
+
+      </div>
+
+      <div id="chartContainer"></div>
+    `;
+
+    drawBarChart(selectedGroup);
+  }
+
+
+  function changeVisualization() {
+    const selector =
+      document.getElementById(
+        "measurementSelector"
+      );
+
+    if (!selector) return;
+
+    renderVisualization(selector.value);
+  }
+
+
+  function drawBarChart(group) {
+    const container =
+      document.getElementById("chartContainer");
+
+    if (!container) return;
+
+    const validResults = group.results
+      .filter(result =>
+        Number.isFinite(Number(result.value))
+      );
+
+    if (validResults.length === 0) {
+      container.innerHTML = `
+        <div class="no-data">
+          No numeric values are available for this measurement.
+        </div>
+      `;
+      return;
+    }
+
+    const values =
+      validResults.map(
+        result => Number(result.value)
+      );
+
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values, 0);
+
+    let chartMax = maxValue;
+
+    if (chartMax <= 0) {
+      chartMax = 1;
+    }
+
+    chartMax = chartMax * 1.15;
+
+    const tickCount = 5;
+
+    const ticks = [];
+
+    for (let i = tickCount; i >= 0; i--) {
+      const value =
+        (chartMax / tickCount) * i;
+
+      ticks.push(formatChartNumber(value));
+    }
+
+    const bars = validResults
+      .map((result, index) => {
+
+        const value = Number(result.value);
+
+        const safeValue =
+          Math.max(0, value);
+
+        const height =
+          chartMax === 0
+            ? 0
+            : (safeValue / chartMax) * 100;
+
+        const sampleName =
+          result.sample_name ||
+          `Result ${index + 1}`;
+
+        return `
+          <div class="bar-group">
+
+            <div class="bar-value">
+              ${escapeHtml(
+                formatChartNumber(value)
+              )}
+            </div>
+
+            <div
+              class="bar"
+              style="height: ${height}%"
+              title="${escapeHtml(
+                sampleName +
+                ": " +
+                value +
+                (group.unit
+                  ? " " + group.unit
+                  : "")
+              )}"
+            ></div>
+
+          </div>
+        `;
+      })
+      .join("");
+
+    const labels = validResults
+      .map((result, index) => {
+
+        const sampleName =
+          result.sample_name ||
+          `Result ${index + 1}`;
+
+        return `
+          <div class="x-label">
+            ${escapeHtml(sampleName)}
+          </div>
+        `;
+      })
+      .join("");
+
+    const gridLines = `
+      <div class="grid-line" style="top: 0%;"></div>
+      <div class="grid-line" style="top: 20%;"></div>
+      <div class="grid-line" style="top: 40%;"></div>
+      <div class="grid-line" style="top: 60%;"></div>
+      <div class="grid-line" style="top: 80%;"></div>
+    `;
+
+    container.innerHTML = `
+      <div class="chart-title">
+        ${escapeHtml(group.measurement)}
+      </div>
+
+      <div class="chart-unit">
+        ${
+          group.unit
+            ? "Unit: " + escapeHtml(group.unit)
+            : "No unit specified"
+        }
+      </div>
+
+      <div class="chart-scroll">
+
+        <div
+          class="chart-scroll-inner"
+          style="min-width: ${Math.max(
+            500,
+            validResults.length * 95
+          )}px;"
+        >
+
+          <div class="chart">
+
+            <div class="y-axis">
+              ${ticks
+                .map(
+                  tick =>
+                    `<span>${escapeHtml(tick)}</span>`
+                )
+                .join("")}
+            </div>
+
+            <div class="chart-main">
+
+              <div class="chart-area">
+
+                ${gridLines}
+                ${bars}
+
+              </div>
+
+              <div class="x-labels">
+                ${labels}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  function formatChartNumber(value) {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+      return "";
+    }
+
+    if (
+      Math.abs(number) >= 1000 ||
+      (
+        Math.abs(number) > 0 &&
+        Math.abs(number) < 0.01
+      )
+    ) {
+      return number.toExponential(2);
+    }
+
+    return Number(
+      number.toFixed(3)
+    ).toString();
+  }
+
+
+  // ============================================================
   // NOTES
   // ============================================================
 
@@ -1573,9 +1965,7 @@
     const container =
       document.getElementById("experimentLog");
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     try {
       const response = await fetch(
@@ -1612,9 +2002,7 @@
     const container =
       document.getElementById("experimentLog");
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     if (currentNotes.length === 0) {
       container.innerHTML = `
@@ -1730,8 +2118,7 @@
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error ||
-          "Unable to add entry."
+          result.error || "Unable to add entry."
         );
       }
 
@@ -1748,22 +2135,15 @@
 
   function editNote(noteId) {
     const note = currentNotes.find(
-      item =>
-        Number(item.id) === Number(noteId)
+      item => Number(item.id) === Number(noteId)
     );
 
-    if (!note) {
-      return;
-    }
+    if (!note) return;
 
     const container =
-      document.getElementById(
-        "note-" + noteId
-      );
+      document.getElementById("note-" + noteId);
 
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     container.innerHTML = `
       <textarea
@@ -1777,25 +2157,11 @@
           class="log-edit-select"
           id="edit-type-${noteId}"
         >
-          <option value="Observation">
-            Observation
-          </option>
-
-          <option value="Result">
-            Result
-          </option>
-
-          <option value="Procedure">
-            Procedure
-          </option>
-
-          <option value="Issue">
-            Issue
-          </option>
-
-          <option value="General">
-            General
-          </option>
+          <option value="Observation">Observation</option>
+          <option value="Result">Result</option>
+          <option value="Procedure">Procedure</option>
+          <option value="Issue">Issue</option>
+          <option value="General">General</option>
         </select>
 
         <button
@@ -1885,9 +2251,7 @@
       "Delete this experiment log entry? This cannot be undone."
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     const experimentId = getExperimentId();
 
