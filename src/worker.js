@@ -132,7 +132,45 @@ export default {
       }
     }
 
+// --------------------------------
+// GET EXPERIMENTS
+// --------------------------------
 
+if (url.pathname === "/api/experiments" && request.method === "GET") {
+  try {
+    const { results } = await env.DB.prepare(
+      `SELECT
+        id,
+        title,
+        project,
+        objective,
+        researcher,
+        status,
+        start_date,
+        tags,
+        created_at,
+        updated_at
+      FROM experiments
+      ORDER BY created_at DESC`
+    ).all();
+
+    return Response.json({
+      success: true,
+      experiments: results
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      {
+        success: false,
+        error: "Unable to load experiments."
+      },
+      { status: 500 }
+    );
+  }
+}
     // --------------------------------
     // STATIC WEBSITE
     // --------------------------------
