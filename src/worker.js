@@ -136,14 +136,34 @@ export default {
 // GET EXPERIMENTS
 // --------------------------------
 
-if (url.pathname === "/api/experiments" && request.method === "GET") {
+// --------------------------------
+// GET SINGLE EXPERIMENT
+// --------------------------------
+
+if (
+  url.pathname.startsWith("/api/experiments/") &&
+  request.method === "GET"
+) {
   try {
-    const { results } = await env.DB.prepare(
+    const id = url.pathname.split("/").pop();
+
+    if (!id || !/^\d+$/.test(id)) {
+      return Response.json(
+        {
+          success: false,
+          error: "Invalid experiment ID."
+        },
+        { status: 400 }
+      );
+    }
+
+    const experiment = await env.DB.prepare(
       `SELECT
         id,
         title,
         project,
         objective,
+        protocol,
         researcher,
         status,
         start_date,
@@ -151,12 +171,24 @@ if (url.pathname === "/api/experiments" && request.method === "GET") {
         created_at,
         updated_at
       FROM experiments
-      ORDER BY created_at DESC`
-    ).all();
+      WHERE id = ?`
+    )
+      .bind(id)
+      .first();
+
+    if (!experiment) {
+      return Response.json(
+        {
+          success: false,
+          error: "Experiment not found."
+        },
+        { status: 404 }
+      );
+    }
 
     return Response.json({
       success: true,
-      experiments: results
+      experiment
     });
 
   } catch (error) {
@@ -165,7 +197,7 @@ if (url.pathname === "/api/experiments" && request.method === "GET") {
     return Response.json(
       {
         success: false,
-        error: "Unable to load experiments."
+        error: "Unable to load experiment."
       },
       { status: 500 }
     );
