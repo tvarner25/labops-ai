@@ -409,12 +409,13 @@
 
     <section class="stats">
 
-      <div class="stat-card">
-        <div class="stat-label">ACTIVE EXPERIMENTS</div>
-        <div class="stat-number">4</div>
-        <div class="stat-description">2 updated today</div>
-      </div>
-
+<div class="stat-card">
+  <div class="stat-label">ACTIVE EXPERIMENTS</div>
+  <div class="stat-number" id="experimentCount">—</div>
+  <div class="stat-description" id="experimentDescription">
+    Loading experiments...
+  </div>
+</div>
       <div class="stat-card">
         <div class="stat-label">TASKS DUE</div>
         <div class="stat-number">7</div>
@@ -523,7 +524,19 @@
       }
 
       const experiments = result.experiments || [];
+const activeExperiments = experiments.filter(
+  (experiment) =>
+    experiment.status !== "Completed" &&
+    experiment.status !== "On Hold"
+);
 
+document.getElementById("experimentCount").textContent =
+  activeExperiments.length;
+
+document.getElementById("experimentDescription").textContent =
+  experiments.length === 1
+    ? "1 total experiment"
+    : `${experiments.length} total experiments`;
       if (experiments.length === 0) {
         container.innerHTML = `
           <div class="experiment">
