@@ -15,27 +15,19 @@ export default {
 
         const name = String(data.name || "").trim();
         const email = String(data.email || "").trim();
-        const organization = String(
-          data.organization || ""
-        ).trim();
+        const organization = String(data.organization || "").trim();
         const message = String(data.message || "").trim();
 
         if (!name || !email || !organization) {
           return Response.json(
-            {
-              success: false,
-              error: "Missing required fields."
-            },
+            { success: false, error: "Missing required fields." },
             { status: 400 }
           );
         }
 
         if (!email.includes("@")) {
           return Response.json(
-            {
-              success: false,
-              error: "Please enter a valid email."
-            },
+            { success: false, error: "Please enter a valid email." },
             { status: 400 }
           );
         }
@@ -45,26 +37,16 @@ export default {
           (name, email, organization, message)
           VALUES (?, ?, ?, ?)`
         )
-          .bind(
-            name,
-            email,
-            organization,
-            message
-          )
+          .bind(name, email, organization, message)
           .run();
 
-        return Response.json({
-          success: true
-        });
+        return Response.json({ success: true });
 
       } catch (error) {
         console.error(error);
 
         return Response.json(
-          {
-            success: false,
-            error: "Unable to submit request."
-          },
+          { success: false, error: "Unable to submit request." },
           { status: 500 }
         );
       }
@@ -86,15 +68,9 @@ export default {
         const project = String(data.project || "").trim();
         const objective = String(data.objective || "").trim();
         const protocol = String(data.protocol || "").trim();
-        const researcher = String(
-          data.researcher || ""
-        ).trim();
-        const status = String(
-          data.status || "Planning"
-        ).trim();
-        const startDate = String(
-          data.start_date || ""
-        ).trim();
+        const researcher = String(data.researcher || "").trim();
+        const status = String(data.status || "Planning").trim();
+        const startDate = String(data.start_date || "").trim();
         const tags = String(data.tags || "").trim();
 
         if (!title) {
@@ -198,7 +174,7 @@ export default {
 
 
     // ============================================================
-    // EXPERIMENT NOTES ROUTE MATCHING
+    // ROUTE MATCHING
     // ============================================================
 
     const notesListMatch = url.pathname.match(
@@ -209,15 +185,24 @@ export default {
       /^\/api\/experiments\/(\d+)\/notes\/(\d+)$/
     );
 
+    const resultsListMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)\/results$/
+    );
+
+    const singleResultMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)\/results\/(\d+)$/
+    );
+
+    const experimentMatch = url.pathname.match(
+      /^\/api\/experiments\/(\d+)$/
+    );
+
 
     // ============================================================
     // GET EXPERIMENT NOTES
     // ============================================================
 
-    if (
-      notesListMatch &&
-      request.method === "GET"
-    ) {
+    if (notesListMatch && request.method === "GET") {
       try {
         const experimentId = notesListMatch[1];
 
@@ -259,10 +244,7 @@ export default {
     // CREATE EXPERIMENT NOTE
     // ============================================================
 
-    if (
-      notesListMatch &&
-      request.method === "POST"
-    ) {
+    if (notesListMatch && request.method === "POST") {
       try {
         const experimentId = notesListMatch[1];
         const data = await request.json();
@@ -274,46 +256,30 @@ export default {
 
         if (!note) {
           return Response.json(
-            {
-              success: false,
-              error: "Note cannot be empty."
-            },
+            { success: false, error: "Note cannot be empty." },
             { status: 400 }
           );
         }
 
         const experiment = await env.DB.prepare(
-          `SELECT id
-           FROM experiments
-           WHERE id = ?`
+          `SELECT id FROM experiments WHERE id = ?`
         )
           .bind(experimentId)
           .first();
 
         if (!experiment) {
           return Response.json(
-            {
-              success: false,
-              error: "Experiment not found."
-            },
+            { success: false, error: "Experiment not found." },
             { status: 404 }
           );
         }
 
         const result = await env.DB.prepare(
           `INSERT INTO experiment_notes
-          (
-            experiment_id,
-            note,
-            entry_type
-          )
+          (experiment_id, note, entry_type)
           VALUES (?, ?, ?)`
         )
-          .bind(
-            experimentId,
-            note,
-            entryType
-          )
+          .bind(experimentId, note, entryType)
           .run();
 
         return Response.json({
@@ -339,10 +305,7 @@ export default {
     // UPDATE EXPERIMENT NOTE
     // ============================================================
 
-    if (
-      singleNoteMatch &&
-      request.method === "PUT"
-    ) {
+    if (singleNoteMatch && request.method === "PUT") {
       try {
         const experimentId = singleNoteMatch[1];
         const noteId = singleNoteMatch[2];
@@ -356,10 +319,7 @@ export default {
 
         if (!note) {
           return Response.json(
-            {
-              success: false,
-              error: "Note cannot be empty."
-            },
+            { success: false, error: "Note cannot be empty." },
             { status: 400 }
           );
         }
@@ -423,10 +383,7 @@ export default {
     // DELETE EXPERIMENT NOTE
     // ============================================================
 
-    if (
-      singleNoteMatch &&
-      request.method === "DELETE"
-    ) {
+    if (singleNoteMatch && request.method === "DELETE") {
       try {
         const experimentId = singleNoteMatch[1];
         const noteId = singleNoteMatch[2];
@@ -458,9 +415,7 @@ export default {
           .bind(noteId, experimentId)
           .run();
 
-        return Response.json({
-          success: true
-        });
+        return Response.json({ success: true });
 
       } catch (error) {
         console.error(error);
@@ -477,22 +432,333 @@ export default {
 
 
     // ============================================================
-    // SINGLE EXPERIMENT ROUTE
+    // GET EXPERIMENT RESULTS
     // ============================================================
 
-    const experimentMatch = url.pathname.match(
-      /^\/api\/experiments\/(\d+)$/
-    );
+    if (resultsListMatch && request.method === "GET") {
+      try {
+        const experimentId = resultsListMatch[1];
+
+        const { results } = await env.DB.prepare(
+          `SELECT
+            id,
+            experiment_id,
+            sample_name,
+            measurement,
+            value,
+            unit,
+            notes,
+            created_at,
+            updated_at
+          FROM experiment_results
+          WHERE experiment_id = ?
+          ORDER BY created_at DESC, id DESC`
+        )
+          .bind(experimentId)
+          .all();
+
+        return Response.json({
+          success: true,
+          results
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load experiment results."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // CREATE EXPERIMENT RESULT
+    // ============================================================
+
+    if (resultsListMatch && request.method === "POST") {
+      try {
+        const experimentId = resultsListMatch[1];
+        const data = await request.json();
+
+        const sampleName = String(
+          data.sample_name || ""
+        ).trim();
+
+        const measurement = String(
+          data.measurement || ""
+        ).trim();
+
+        const unit = String(data.unit || "").trim();
+        const notes = String(data.notes || "").trim();
+
+        if (!measurement) {
+          return Response.json(
+            {
+              success: false,
+              error: "Measurement is required."
+            },
+            { status: 400 }
+          );
+        }
+
+        if (
+          data.value === "" ||
+          data.value === null ||
+          data.value === undefined
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "A numeric value is required."
+            },
+            { status: 400 }
+          );
+        }
+
+        const value = Number(data.value);
+
+        if (!Number.isFinite(value)) {
+          return Response.json(
+            {
+              success: false,
+              error: "Value must be a valid number."
+            },
+            { status: 400 }
+          );
+        }
+
+        const experiment = await env.DB.prepare(
+          `SELECT id FROM experiments WHERE id = ?`
+        )
+          .bind(experimentId)
+          .first();
+
+        if (!experiment) {
+          return Response.json(
+            { success: false, error: "Experiment not found." },
+            { status: 404 }
+          );
+        }
+
+        const result = await env.DB.prepare(
+          `INSERT INTO experiment_results
+          (
+            experiment_id,
+            sample_name,
+            measurement,
+            value,
+            unit,
+            notes
+          )
+          VALUES (?, ?, ?, ?, ?, ?)`
+        )
+          .bind(
+            experimentId,
+            sampleName,
+            measurement,
+            value,
+            unit,
+            notes
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          resultId: result.meta.last_row_id
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to create experiment result."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // UPDATE EXPERIMENT RESULT
+    // ============================================================
+
+    if (singleResultMatch && request.method === "PUT") {
+      try {
+        const experimentId = singleResultMatch[1];
+        const resultId = singleResultMatch[2];
+
+        const data = await request.json();
+
+        const sampleName = String(
+          data.sample_name || ""
+        ).trim();
+
+        const measurement = String(
+          data.measurement || ""
+        ).trim();
+
+        const unit = String(data.unit || "").trim();
+        const notes = String(data.notes || "").trim();
+
+        if (!measurement) {
+          return Response.json(
+            {
+              success: false,
+              error: "Measurement is required."
+            },
+            { status: 400 }
+          );
+        }
+
+        if (
+          data.value === "" ||
+          data.value === null ||
+          data.value === undefined
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "A numeric value is required."
+            },
+            { status: 400 }
+          );
+        }
+
+        const value = Number(data.value);
+
+        if (!Number.isFinite(value)) {
+          return Response.json(
+            {
+              success: false,
+              error: "Value must be a valid number."
+            },
+            { status: 400 }
+          );
+        }
+
+        const existingResult = await env.DB.prepare(
+          `SELECT id
+           FROM experiment_results
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(resultId, experimentId)
+          .first();
+
+        if (!existingResult) {
+          return Response.json(
+            {
+              success: false,
+              error: "Result not found."
+            },
+            { status: 404 }
+          );
+        }
+
+        await env.DB.prepare(
+          `UPDATE experiment_results
+           SET
+             sample_name = ?,
+             measurement = ?,
+             value = ?,
+             unit = ?,
+             notes = ?,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(
+            sampleName,
+            measurement,
+            value,
+            unit,
+            notes,
+            resultId,
+            experimentId
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          resultId: Number(resultId)
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to update experiment result."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // DELETE EXPERIMENT RESULT
+    // ============================================================
+
+    if (singleResultMatch && request.method === "DELETE") {
+      try {
+        const experimentId = singleResultMatch[1];
+        const resultId = singleResultMatch[2];
+
+        const existingResult = await env.DB.prepare(
+          `SELECT id
+           FROM experiment_results
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(resultId, experimentId)
+          .first();
+
+        if (!existingResult) {
+          return Response.json(
+            { success: false, error: "Result not found." },
+            { status: 404 }
+          );
+        }
+
+        await env.DB.prepare(
+          `DELETE FROM experiment_results
+           WHERE id = ?
+           AND experiment_id = ?`
+        )
+          .bind(resultId, experimentId)
+          .run();
+
+        return Response.json({ success: true });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to delete experiment result."
+          },
+          { status: 500 }
+        );
+      }
+    }
 
 
     // ============================================================
     // GET SINGLE EXPERIMENT
     // ============================================================
 
-    if (
-      experimentMatch &&
-      request.method === "GET"
-    ) {
+    if (experimentMatch && request.method === "GET") {
       try {
         const id = experimentMatch[1];
 
@@ -517,10 +783,7 @@ export default {
 
         if (!experiment) {
           return Response.json(
-            {
-              success: false,
-              error: "Experiment not found."
-            },
+            { success: false, error: "Experiment not found." },
             { status: 404 }
           );
         }
@@ -548,22 +811,15 @@ export default {
     // UPDATE EXPERIMENT
     // ============================================================
 
-    if (
-      experimentMatch &&
-      request.method === "PUT"
-    ) {
+    if (experimentMatch && request.method === "PUT") {
       try {
         const id = experimentMatch[1];
         const data = await request.json();
 
         const title = String(data.title || "").trim();
         const project = String(data.project || "").trim();
-        const objective = String(
-          data.objective || ""
-        ).trim();
-        const protocol = String(
-          data.protocol || ""
-        ).trim();
+        const objective = String(data.objective || "").trim();
+        const protocol = String(data.protocol || "").trim();
         const researcher = String(
           data.researcher || ""
         ).trim();
@@ -586,19 +842,14 @@ export default {
         }
 
         const existing = await env.DB.prepare(
-          `SELECT id
-           FROM experiments
-           WHERE id = ?`
+          `SELECT id FROM experiments WHERE id = ?`
         )
           .bind(id)
           .first();
 
         if (!existing) {
           return Response.json(
-            {
-              success: false,
-              error: "Experiment not found."
-            },
+            { success: false, error: "Experiment not found." },
             { status: 404 }
           );
         }
