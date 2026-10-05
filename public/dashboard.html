@@ -448,7 +448,7 @@
     <nav class="nav">
       <a href="/dashboard.html" class="active">Dashboard</a>
       <a href="/experiments.html">Experiments</a>
-      <a href="#">Inventory</a>
+      <a href="/inventory.html">Inventory</a>
       <a href="/tasks.html">Tasks</a>
       <a href="#">AI Assistant</a>
     </nav>
@@ -539,18 +539,27 @@
       </div>
 
 
-      <div class="stat-card">
-        <div class="stat-label">INVENTORY ALERTS</div>
+<div
+  class="stat-card"
+  onclick="window.location.href='/inventory.html'"
+  style="cursor: pointer;"
+>
+  <div class="stat-label">INVENTORY ALERTS</div>
 
-        <div class="stat-number alert-number">
-          3
-        </div>
+  <div
+    class="stat-number alert-number"
+    id="inventoryAlertCount"
+  >
+    —
+  </div>
 
-        <div class="stat-description">
-          Inventory system coming next
-        </div>
-      </div>
-
+  <div
+    class="stat-description"
+    id="inventoryAlertDescription"
+  >
+    Checking inventory...
+  </div>
+</div>
     </section>
 
 
@@ -1378,22 +1387,258 @@
       "/tasks.html";
   }
 
+  // ============================================================
+  // INVENTORY
+  // ============================================================
 
+  function isInventoryLowStock(item) {
+    const quantity =
+      Number(item.quantity || 0);
+
+    const minimum =
+      Number(
+        item.minimum_quantity || 0
+      );
+
+    return (
+      minimum > 0 &&
+      quantity <= minimum
+    );
+  }
+
+
+  function isInventoryExpired(item) {
+    if (!item.expiration_date) {
+      return false;
+    }
+
+    const expiration =
+      parseDateOnly(
+        item.expiration_date
+      );
+
+    if (!expiration) {
+      return false;
+    }
+
+    expiration.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    return (
+      expiration <
+      getToday()
+    );
+  }
+
+
+  function isInventoryExpiringSoon(item) {
+    if (!item.expiration_date) {
+      return false;
+    }
+
+    const expiration =
+      parseDateOnly(
+        item.expiration_date
+      );
+
+    if (!expiration) {
+      return false;
+    }
+
+    expiration.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    const today =
+      getToday();
+
+
+    if (expiration < today) {
+      return false;
+    }
+
+
+    const thirtyDaysFromNow =
+      new Date(today);
+
+    thirtyDaysFromNow.setDate(
+      thirtyDaysFromNow.getDate() + 30
+    );
+
+
+    return (
+      expiration <=
+      thirtyDaysFromNow
+    );
+  }
+
+
+  async function loadInventoryAlerts() {
+    const countElement =
+      document.getElementById(
+        "inventoryAlertCount"
+      );
+
+    const descriptionElement =
+      document.getElementById(
+        "inventoryAlertDescription"
+      );
+
+
+    try {
+      const response =
+        await fetch(
+          "/api/inventory"
+        );
+
+      const result =
+        await response.json();
+
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.error ||
+          "Unable to load inventory."
+        );
+      }
+
+
+      const items =
+        result.items || [];
+
+
+      const lowStock =
+        items.filter(
+          isInventoryLowStock
+        );
+
+
+      const expiringSoon =
+        items.filter(
+          isInventoryExpiringSoon
+        );
+
+
+      const expired =
+        items.filter(
+          isInventoryExpired
+        );
+
+
+      /*
+        One item may have more than one
+        warning, such as low stock AND
+        expired.
+
+        The main number counts unique
+        inventory items requiring attention.
+      */
+
+      const alertItemIds =
+        new Set();
+
+
+      lowStock.forEach(
+        item =>
+          alertItemIds.add(
+            String(item.id)
+          )
+      );
+
+
+      expiringSoon.forEach(
+        item =>
+          alertItemIds.add(
+            String(item.id)
+          )
+      );
+
+
+      expired.forEach(
+        item =>
+          alertItemIds.add(
+            String(item.id)
+          )
+      );
+
+
+      countElement.textContent =
+        alertItemIds.size;
+
+
+      if (alertItemIds.size === 0) {
+        descriptionElement.textContent =
+          "Inventory looks good";
+
+        return;
+      }
+
+
+      const descriptions = [];
+
+
+      if (lowStock.length > 0) {
+        descriptions.push(
+          `${lowStock.length} low stock`
+        );
+      }
+
+
+      if (expiringSoon.length > 0) {
+        descriptions.push(
+          `${expiringSoon.length} expiring soon`
+        );
+      }
+
+
+      if (expired.length > 0) {
+        descriptions.push(
+          `${expired.length} expired`
+        );
+      }
+
+
+      descriptionElement.textContent =
+        descriptions.join(" · ");
+
+
+    } catch (error) {
+      console.error(error);
+
+      countElement.textContent =
+        "—";
+
+      descriptionElement.textContent =
+        "Unable to check inventory";
+    }
+  }
   // ============================================================
   // DASHBOARD STARTUP
   // ============================================================
 
-  async function initializeDashboard() {
-    /*
-      Load experiments first so task
-      cards can display the name of
-      their linked experiment.
-    */
+ async function initializeDashboard() {
+  /*
+    Load experiments first so task
+    cards can display the name of
+    their linked experiment.
+  */
 
-    await loadExperiments();
+  await loadExperiments();
 
-    await loadTasks();
-  }
+  await loadTasks();
+
+  await loadInventoryAlerts();
+}
 
 
   initializeDashboard();
