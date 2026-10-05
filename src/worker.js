@@ -2126,7 +2126,20 @@ export default {
           String(
             data.question || ""
           ).trim();
-
+        const history =
+          Array.isArray(data.history)
+            ? data.history
+                .filter(
+                  (message) =>
+                    message &&
+                    (
+                      message.role === "user" ||
+                      message.role === "assistant"
+                    ) &&
+                    typeof message.content === "string"
+                )
+                .slice(-10)
+            : [];
 
         if (!question) {
           return Response.json(
@@ -2398,15 +2411,16 @@ ${question}
             "@cf/zai-org/glm-4.7-flash",
             {
               messages: [
-                {
-                  role: "system",
-                  content: systemPrompt
-                },
-                {
-                  role: "user",
-                  content: userPrompt
-                }
-              ],
+  {
+    role: "system",
+    content: systemPrompt
+  },
+  ...history,
+  {
+    role: "user",
+    content: userPrompt
+  }
+],
               max_tokens: 1000
             }
           );
