@@ -514,6 +514,145 @@
       min-width: 500px;
     }
 
+    /* TASKS */
+
+    .task-entry {
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task-entry:last-child {
+      border-bottom: none;
+    }
+
+    .task-title-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .task-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .task-title.completed {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .task-description {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #4b5549;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 9px;
+      align-items: center;
+    }
+
+    .task-badge {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .task-badge.high {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .task-badge.medium {
+      background: #fff3d6;
+      color: #8a5a00;
+    }
+
+    .task-badge.low {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .task-date {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .task-date.overdue {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .task-controls {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .task-small-button {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .task-small-button.delete {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .task-form {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .task-form input,
+    .task-form select,
+    .task-form textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      margin-bottom: 8px;
+    }
+
+    .task-form textarea {
+      min-height: 75px;
+      resize: vertical;
+    }
+
+    .task-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tasks-page-link {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
     /* LOG */
 
     .log-entry {
@@ -607,8 +746,7 @@
       resize: vertical;
       margin-bottom: 10px;
     }
-
-    .note-actions,
+        .note-actions,
     .log-edit-actions {
       display: flex;
       gap: 8px;
@@ -672,11 +810,13 @@
       }
 
       .header,
-      .log-header {
+      .log-header,
+      .task-title-row {
         flex-direction: column;
       }
 
-      .result-form-grid {
+      .result-form-grid,
+      .task-form-row {
         grid-template-columns: 1fr;
       }
 
@@ -703,7 +843,7 @@
       <a href="/dashboard.html">Dashboard</a>
       <a href="/experiments.html" class="active">Experiments</a>
       <a href="#">Inventory</a>
-      <a href="#">Tasks</a>
+      <a href="/tasks.html">Tasks</a>
       <a href="#">AI Assistant</a>
     </nav>
 
@@ -730,14 +870,16 @@
 
 </div>
 
+
 <script>
   let currentExperiment = null;
   let currentNotes = [];
   let currentResults = [];
+  let currentTasks = [];
 
 
   function escapeHtml(value) {
-    return String(value)
+    return String(value ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -747,7 +889,10 @@
 
 
   function getExperimentId() {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
     return params.get("id");
   }
 
@@ -763,12 +908,70 @@
   }
 
 
+  function parseTaskDate(value) {
+    if (!value) return null;
+
+    const parts = String(value).split("-");
+
+    if (parts.length !== 3) {
+      return new Date(value);
+    }
+
+    return new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2])
+    );
+  }
+
+
+  function formatTaskDate(value) {
+    const date = parseTaskDate(value);
+
+    if (!date || Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }
+    );
+  }
+
+
+  function isTaskOverdue(task) {
+    if (
+      !task.due_date ||
+      task.status === "Completed"
+    ) {
+      return false;
+    }
+
+    const due = parseTaskDate(task.due_date);
+
+    if (!due) return false;
+
+    due.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return due < today;
+  }
+
+
   // ============================================================
   // EXPERIMENT
   // ============================================================
 
   async function loadExperiment() {
-    const workspace = document.getElementById("workspace");
+    const workspace =
+      document.getElementById("workspace");
+
     const id = getExperimentId();
 
     if (!id || !/^\d+$/.test(id)) {
@@ -782,18 +985,21 @@
 
     try {
       const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id)
+        "/api/experiments/" +
+        encodeURIComponent(id)
       );
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to load experiment."
+          result.error ||
+          "Unable to load experiment."
         );
       }
 
       currentExperiment = result.experiment;
+
       renderExperiment();
 
     } catch (error) {
@@ -801,8 +1007,12 @@
 
       workspace.innerHTML = `
         <div class="error">
-          <strong>Unable to load experiment.</strong>
+          <strong>
+            Unable to load experiment.
+          </strong>
+
           <br><br>
+
           ${escapeHtml(error.message)}
         </div>
       `;
@@ -811,49 +1021,74 @@
 
 
   function renderExperiment() {
-    const workspace = document.getElementById("workspace");
+    const workspace =
+      document.getElementById("workspace");
+
     const experiment = currentExperiment;
 
     const title = escapeHtml(
-      experiment.title || "Untitled Experiment"
+      experiment.title ||
+      "Untitled Experiment"
     );
 
     const project = escapeHtml(
-      experiment.project || "Uncategorized"
+      experiment.project ||
+      "Uncategorized"
     );
 
     const researcher = escapeHtml(
-      experiment.researcher || "Not assigned"
+      experiment.researcher ||
+      "Not assigned"
     );
 
     const status = escapeHtml(
-      experiment.status || "Planning"
+      experiment.status ||
+      "Planning"
     );
 
     const startDate = escapeHtml(
-      experiment.start_date || "Not set"
+      experiment.start_date ||
+      "Not set"
     );
 
     const objective = experiment.objective
       ? escapeHtml(experiment.objective)
-      : '<span class="empty-text">No objective added.</span>';
+      : `
+        <span class="empty-text">
+          No objective added.
+        </span>
+      `;
 
     const protocol = experiment.protocol
       ? escapeHtml(experiment.protocol)
-      : '<span class="empty-text">No protocol added.</span>';
+      : `
+        <span class="empty-text">
+          No protocol added.
+        </span>
+      `;
 
-    const tags = String(experiment.tags || "")
-      .split(",")
-      .map(tag => tag.trim())
-      .filter(Boolean);
+    const tags =
+      String(experiment.tags || "")
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(Boolean);
 
     const tagsHtml = tags.length
-      ? tags.map(
-          tag => `<span class="tag">${escapeHtml(tag)}</span>`
-        ).join("")
-      : '<span class="empty-text">No tags</span>';
+      ? tags
+          .map(
+            tag =>
+              `<span class="tag">${escapeHtml(tag)}</span>`
+          )
+          .join("")
+      : `
+        <span class="empty-text">
+          No tags
+        </span>
+      `;
 
-    document.title = title + " | LabOps AI";
+    document.title =
+      (experiment.title || "Experiment") +
+      " | LabOps AI";
 
     workspace.innerHTML = `
       <div class="header">
@@ -864,7 +1099,10 @@
         </div>
 
         <div>
-          <span class="status">${status}</span>
+
+          <span class="status">
+            ${status}
+          </span>
 
           <button
             class="edit-button"
@@ -873,23 +1111,37 @@
           >
             Edit Experiment
           </button>
+
         </div>
 
       </div>
+
 
       <div class="grid">
 
         <div>
 
           <section class="panel">
+
             <h2>Objective</h2>
-            <div class="content">${objective}</div>
+
+            <div class="content">
+              ${objective}
+            </div>
+
           </section>
 
+
           <section class="panel">
+
             <h2>Protocol</h2>
-            <div class="content">${protocol}</div>
+
+            <div class="content">
+              ${protocol}
+            </div>
+
           </section>
+
 
           <section class="panel">
 
@@ -900,10 +1152,13 @@
             </div>
 
             <div id="resultsContainer">
+
               <div class="no-data">
                 Loading results...
               </div>
+
             </div>
+
 
             <div class="result-form">
 
@@ -977,9 +1232,11 @@
             <h2>Experiment Log</h2>
 
             <div id="experimentLog">
+
               <div class="no-data">
                 Loading entries...
               </div>
+
             </div>
 
             <div class="note-form">
@@ -992,11 +1249,25 @@
               <div class="note-actions">
 
                 <select id="entryType">
-                  <option value="Observation">Observation</option>
-                  <option value="Result">Result</option>
-                  <option value="Procedure">Procedure</option>
-                  <option value="Issue">Issue</option>
-                  <option value="General">General</option>
+                  <option value="Observation">
+                    Observation
+                  </option>
+
+                  <option value="Result">
+                    Result
+                  </option>
+
+                  <option value="Procedure">
+                    Procedure
+                  </option>
+
+                  <option value="Issue">
+                    Issue
+                  </option>
+
+                  <option value="General">
+                    General
+                  </option>
                 </select>
 
                 <button
@@ -1022,29 +1293,171 @@
             <h2>Experiment Details</h2>
 
             <div class="detail">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">${status}</div>
+
+              <div class="detail-label">
+                Status
+              </div>
+
+              <div class="detail-value">
+                ${status}
+              </div>
+
             </div>
 
-            <div class="detail">
-              <div class="detail-label">Researcher</div>
-              <div class="detail-value">${researcher}</div>
-            </div>
 
             <div class="detail">
-              <div class="detail-label">Project</div>
-              <div class="detail-value">${project}</div>
+
+              <div class="detail-label">
+                Researcher
+              </div>
+
+              <div class="detail-value">
+                ${researcher}
+              </div>
+
             </div>
 
-            <div class="detail">
-              <div class="detail-label">Start Date</div>
-              <div class="detail-value">${startDate}</div>
-            </div>
 
             <div class="detail">
-              <div class="detail-label">Tags</div>
-              <div class="detail-value">${tagsHtml}</div>
+
+              <div class="detail-label">
+                Project
+              </div>
+
+              <div class="detail-value">
+                ${project}
+              </div>
+
             </div>
+
+
+            <div class="detail">
+
+              <div class="detail-label">
+                Start Date
+              </div>
+
+              <div class="detail-value">
+                ${startDate}
+              </div>
+
+            </div>
+
+
+            <div class="detail">
+
+              <div class="detail-label">
+                Tags
+              </div>
+
+              <div class="detail-value">
+                ${tagsHtml}
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- EXPERIMENT TASKS -->
+
+          <section class="panel">
+
+            <h2>Tasks</h2>
+
+            <div class="panel-subtitle">
+              Work and deadlines linked to this experiment.
+            </div>
+
+            <div id="experimentTasks">
+
+              <div class="no-data">
+                Loading tasks...
+              </div>
+
+            </div>
+
+
+            <div class="task-form">
+
+              <input
+                id="newTaskTitle"
+                type="text"
+                placeholder="Task title"
+              >
+
+              <textarea
+                id="newTaskDescription"
+                placeholder="Task description..."
+              ></textarea>
+
+              <input
+                id="newTaskAssigned"
+                type="text"
+                placeholder="Assigned to"
+              >
+
+              <div class="task-form-row">
+
+                <input
+                  id="newTaskDueDate"
+                  type="date"
+                >
+
+                <select id="newTaskPriority">
+                  <option value="Low">
+                    Low Priority
+                  </option>
+
+                  <option
+                    value="Medium"
+                    selected
+                  >
+                    Medium Priority
+                  </option>
+
+                  <option value="High">
+                    High Priority
+                  </option>
+                </select>
+
+              </div>
+
+              <select id="newTaskStatus">
+
+                <option
+                  value="To Do"
+                  selected
+                >
+                  To Do
+                </option>
+
+                <option value="In Progress">
+                  In Progress
+                </option>
+
+                <option value="Completed">
+                  Completed
+                </option>
+
+              </select>
+
+              <button
+                class="primary-button"
+                onclick="addExperimentTask()"
+              >
+                + Add Task
+              </button>
+
+            </div>
+
+
+            <a
+              class="tasks-page-link"
+              href="/tasks.html"
+            >
+              View all tasks →
+            </a>
 
           </section>
 
@@ -1055,6 +1468,7 @@
 
     loadResults();
     loadNotes();
+    loadTasks();
   }
 
 
@@ -1063,92 +1477,173 @@
   // ============================================================
 
   function showEditForm() {
-    const workspace = document.getElementById("workspace");
-    const experiment = currentExperiment;
+    const workspace =
+      document.getElementById("workspace");
+
+    const experiment =
+      currentExperiment;
 
     workspace.innerHTML = `
       <div class="header">
+
         <div>
           <h1>Edit Experiment</h1>
-          <p>Update experiment information.</p>
+          <p>
+            Update experiment information.
+          </p>
         </div>
+
       </div>
+
 
       <section class="panel">
 
         <form id="editForm">
 
           <div class="form-group">
-            <label>Experiment Title</label>
+
+            <label>
+              Experiment Title
+            </label>
+
             <input
               id="title"
               type="text"
-              value="${escapeHtml(experiment.title || "")}"
+              value="${escapeHtml(
+                experiment.title || ""
+              )}"
               required
             >
+
           </div>
 
+
           <div class="form-group">
-            <label>Project</label>
+
+            <label>
+              Project
+            </label>
+
             <input
               id="project"
               type="text"
-              value="${escapeHtml(experiment.project || "")}"
+              value="${escapeHtml(
+                experiment.project || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
-            <label>Researcher</label>
+
+            <label>
+              Researcher
+            </label>
+
             <input
               id="researcher"
               type="text"
-              value="${escapeHtml(experiment.researcher || "")}"
+              value="${escapeHtml(
+                experiment.researcher || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
-            <label>Status</label>
+
+            <label>
+              Status
+            </label>
 
             <select id="status">
-              <option value="Planning">Planning</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Analysis">Analysis</option>
-              <option value="Completed">Completed</option>
-              <option value="On Hold">On Hold</option>
+
+              <option value="Planning">
+                Planning
+              </option>
+
+              <option value="In Progress">
+                In Progress
+              </option>
+
+              <option value="Analysis">
+                Analysis
+              </option>
+
+              <option value="Completed">
+                Completed
+              </option>
+
+              <option value="On Hold">
+                On Hold
+              </option>
+
             </select>
+
           </div>
 
+
           <div class="form-group">
-            <label>Start Date</label>
+
+            <label>
+              Start Date
+            </label>
+
             <input
               id="start_date"
               type="date"
-              value="${escapeHtml(experiment.start_date || "")}"
+              value="${escapeHtml(
+                experiment.start_date || ""
+              )}"
             >
+
           </div>
 
+
           <div class="form-group">
-            <label>Objective</label>
+
+            <label>
+              Objective
+            </label>
+
             <textarea id="objective">${escapeHtml(
               experiment.objective || ""
             )}</textarea>
+
           </div>
 
+
           <div class="form-group">
-            <label>Protocol</label>
+
+            <label>
+              Protocol
+            </label>
+
             <textarea id="protocol">${escapeHtml(
               experiment.protocol || ""
             )}</textarea>
+
           </div>
 
+
           <div class="form-group">
-            <label>Tags</label>
+
+            <label>
+              Tags
+            </label>
+
             <input
               id="tags"
               type="text"
-              value="${escapeHtml(experiment.tags || "")}"
+              value="${escapeHtml(
+                experiment.tags || ""
+              )}"
             >
+
           </div>
+
 
           <div class="edit-actions">
 
@@ -1174,12 +1669,17 @@
       </section>
     `;
 
-    document.getElementById("status").value =
+    document.getElementById(
+      "status"
+    ).value =
       experiment.status || "Planning";
 
     document
       .getElementById("editForm")
-      .addEventListener("submit", saveExperiment);
+      .addEventListener(
+        "submit",
+        saveExperiment
+      );
   }
 
 
@@ -1189,37 +1689,735 @@
     const id = getExperimentId();
 
     const data = {
-      title: document.getElementById("title").value,
-      project: document.getElementById("project").value,
-      researcher: document.getElementById("researcher").value,
-      status: document.getElementById("status").value,
-      start_date: document.getElementById("start_date").value,
-      objective: document.getElementById("objective").value,
-      protocol: document.getElementById("protocol").value,
-      tags: document.getElementById("tags").value
+      title:
+        document.getElementById(
+          "title"
+        ).value,
+
+      project:
+        document.getElementById(
+          "project"
+        ).value,
+
+      researcher:
+        document.getElementById(
+          "researcher"
+        ).value,
+
+      status:
+        document.getElementById(
+          "status"
+        ).value,
+
+      start_date:
+        document.getElementById(
+          "start_date"
+        ).value,
+
+      objective:
+        document.getElementById(
+          "objective"
+        ).value,
+
+      protocol:
+        document.getElementById(
+          "protocol"
+        ).value,
+
+      tags:
+        document.getElementById(
+          "tags"
+        ).value
     };
 
     try {
       const response = await fetch(
-        "/api/experiments/" + encodeURIComponent(id),
+        "/api/experiments/" +
+        encodeURIComponent(id),
         {
           method: "PUT",
+
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
+
           body: JSON.stringify(data)
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to save experiment."
+          result.error ||
+          "Unable to save experiment."
         );
       }
 
       await loadExperiment();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  // ============================================================
+  // EXPERIMENT TASKS
+  // ============================================================
+
+  async function loadTasks() {
+    const id = getExperimentId();
+
+    const container =
+      document.getElementById(
+        "experimentTasks"
+      );
+
+    if (!container) return;
+
+    try {
+      const response = await fetch(
+        "/api/experiments/" +
+        encodeURIComponent(id) +
+        "/tasks"
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to load tasks."
+        );
+      }
+
+      currentTasks =
+        result.tasks || [];
+
+      renderTasks();
+
+    } catch (error) {
+      console.error(error);
+
+      container.innerHTML = `
+        <div class="no-data">
+          Unable to load tasks.
+        </div>
+      `;
+    }
+  }
+
+
+  function renderTasks() {
+    const container =
+      document.getElementById(
+        "experimentTasks"
+      );
+
+    if (!container) return;
+
+    if (currentTasks.length === 0) {
+      container.innerHTML = `
+        <div class="no-data">
+          No tasks linked to this experiment yet.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      currentTasks
+        .map(task => {
+
+          const completed =
+            task.status === "Completed";
+
+          const priority =
+            String(
+              task.priority || "Medium"
+            ).toLowerCase();
+
+          const overdue =
+            isTaskOverdue(task);
+
+          const description =
+            task.description
+              ? `
+                <div class="task-description">
+                  ${escapeHtml(
+                    task.description
+                  )}
+                </div>
+              `
+              : "";
+
+          const assigned =
+            task.assigned_to
+              ? `
+                <span class="task-date">
+                  Assigned to
+                  ${escapeHtml(
+                    task.assigned_to
+                  )}
+                </span>
+              `
+              : "";
+
+          const dueDate =
+            task.due_date
+              ? `
+                <span
+                  class="task-date ${
+                    overdue
+                      ? "overdue"
+                      : ""
+                  }"
+                >
+                  ${
+                    overdue
+                      ? "Overdue · "
+                      : "Due · "
+                  }
+                  ${escapeHtml(
+                    formatTaskDate(
+                      task.due_date
+                    )
+                  )}
+                </span>
+              `
+              : "";
+
+          return `
+            <div class="task-entry">
+
+              <div class="task-title-row">
+
+                <div
+                  class="task-title ${
+                    completed
+                      ? "completed"
+                      : ""
+                  }"
+                >
+                  ${escapeHtml(
+                    task.title
+                  )}
+                </div>
+
+                <span class="task-badge">
+                  ${escapeHtml(
+                    task.status
+                  )}
+                </span>
+
+              </div>
+
+              ${description}
+
+              <div class="task-meta">
+
+                <span
+                  class="task-badge ${priority}"
+                >
+                  ${escapeHtml(
+                    task.priority
+                  )}
+                </span>
+
+                ${assigned}
+                ${dueDate}
+
+              </div>
+
+              <div class="task-controls">
+
+                ${
+                  completed
+                    ? `
+                      <button
+                        class="task-small-button"
+                        onclick="changeExperimentTaskStatus(
+                          ${task.id},
+                          'To Do'
+                        )"
+                      >
+                        Reopen
+                      </button>
+                    `
+                    : `
+                      <button
+                        class="task-small-button"
+                        onclick="changeExperimentTaskStatus(
+                          ${task.id},
+                          'Completed'
+                        )"
+                      >
+                        Complete
+                      </button>
+                    `
+                }
+
+                <button
+                  class="task-small-button"
+                  onclick="editExperimentTask(
+                    ${task.id}
+                  )"
+                >
+                  Edit
+                </button>
+
+                <button
+                  class="task-small-button delete"
+                  onclick="deleteExperimentTask(
+                    ${task.id}
+                  )"
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            </div>
+          `;
+        })
+        .join("");
+  }
+
+
+  async function addExperimentTask() {
+    const experimentId =
+      getExperimentId();
+
+    const title =
+      document.getElementById(
+        "newTaskTitle"
+      ).value.trim();
+
+    const description =
+      document.getElementById(
+        "newTaskDescription"
+      ).value.trim();
+
+    const assignedTo =
+      document.getElementById(
+        "newTaskAssigned"
+      ).value.trim();
+
+    const dueDate =
+      document.getElementById(
+        "newTaskDueDate"
+      ).value;
+
+    const priority =
+      document.getElementById(
+        "newTaskPriority"
+      ).value;
+
+    const status =
+      document.getElementById(
+        "newTaskStatus"
+      ).value;
+
+    if (!title) {
+      alert("Enter a task title.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/tasks",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            experiment_id: experimentId,
+            title,
+            description,
+            assigned_to: assignedTo,
+            due_date: dueDate,
+            priority,
+            status
+          })
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to create task."
+        );
+      }
+
+      document.getElementById(
+        "newTaskTitle"
+      ).value = "";
+
+      document.getElementById(
+        "newTaskDescription"
+      ).value = "";
+
+      document.getElementById(
+        "newTaskAssigned"
+      ).value = "";
+
+      document.getElementById(
+        "newTaskDueDate"
+      ).value = "";
+
+      document.getElementById(
+        "newTaskPriority"
+      ).value = "Medium";
+
+      document.getElementById(
+        "newTaskStatus"
+      ).value = "To Do";
+
+      await loadTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+    async function changeExperimentTaskStatus(
+    taskId,
+    newStatus
+  ) {
+    const task = currentTasks.find(
+      item =>
+        Number(item.id) === Number(taskId)
+    );
+
+    if (!task) return;
+
+    const data = {
+      experiment_id: getExperimentId(),
+      title: task.title,
+      description: task.description || "",
+      assigned_to: task.assigned_to || "",
+      due_date: task.due_date || "",
+      priority: task.priority || "Medium",
+      status: newStatus
+    };
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify(data)
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to update task."
+        );
+      }
+
+      await loadTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  function editExperimentTask(taskId) {
+    const task = currentTasks.find(
+      item =>
+        Number(item.id) === Number(taskId)
+    );
+
+    if (!task) return;
+
+    const container =
+      document.getElementById(
+        "experimentTasks"
+      );
+
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="result-editor">
+
+        <div class="form-group">
+
+          <label>Task Title</label>
+
+          <input
+            id="editTaskTitle"
+            type="text"
+            value="${escapeHtml(
+              task.title || ""
+            )}"
+          >
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Description</label>
+
+          <textarea
+            id="editTaskDescription"
+          >${escapeHtml(
+            task.description || ""
+          )}</textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Assigned To</label>
+
+          <input
+            id="editTaskAssigned"
+            type="text"
+            value="${escapeHtml(
+              task.assigned_to || ""
+            )}"
+          >
+
+        </div>
+
+
+        <div class="task-form-row">
+
+          <div class="form-group">
+
+            <label>Due Date</label>
+
+            <input
+              id="editTaskDueDate"
+              type="date"
+              value="${escapeHtml(
+                task.due_date || ""
+              )}"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label>Priority</label>
+
+            <select id="editTaskPriority">
+
+              <option value="Low">
+                Low
+              </option>
+
+              <option value="Medium">
+                Medium
+              </option>
+
+              <option value="High">
+                High
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label>Status</label>
+
+          <select id="editTaskStatus">
+
+            <option value="To Do">
+              To Do
+            </option>
+
+            <option value="In Progress">
+              In Progress
+            </option>
+
+            <option value="Completed">
+              Completed
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="edit-actions">
+
+          <button
+            class="save-button"
+            onclick="saveExperimentTask(
+              ${taskId}
+            )"
+          >
+            Save Task
+          </button>
+
+          <button
+            class="cancel-button"
+            onclick="renderTasks()"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    document.getElementById(
+      "editTaskPriority"
+    ).value =
+      task.priority || "Medium";
+
+    document.getElementById(
+      "editTaskStatus"
+    ).value =
+      task.status || "To Do";
+  }
+
+
+  async function saveExperimentTask(taskId) {
+    const title =
+      document.getElementById(
+        "editTaskTitle"
+      ).value.trim();
+
+    const description =
+      document.getElementById(
+        "editTaskDescription"
+      ).value.trim();
+
+    const assignedTo =
+      document.getElementById(
+        "editTaskAssigned"
+      ).value.trim();
+
+    const dueDate =
+      document.getElementById(
+        "editTaskDueDate"
+      ).value;
+
+    const priority =
+      document.getElementById(
+        "editTaskPriority"
+      ).value;
+
+    const status =
+      document.getElementById(
+        "editTaskStatus"
+      ).value;
+
+    if (!title) {
+      alert("Task title cannot be empty.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            experiment_id:
+              getExperimentId(),
+
+            title,
+            description,
+            assigned_to: assignedTo,
+            due_date: dueDate,
+            priority,
+            status
+          })
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to save task."
+        );
+      }
+
+      await loadTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  async function deleteExperimentTask(taskId) {
+    const confirmed = confirm(
+      "Delete this task? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "DELETE"
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to delete task."
+        );
+      }
+
+      await loadTasks();
 
     } catch (error) {
       console.error(error);
@@ -1234,8 +2432,11 @@
 
   async function loadResults() {
     const id = getExperimentId();
+
     const container =
-      document.getElementById("resultsContainer");
+      document.getElementById(
+        "resultsContainer"
+      );
 
     if (!container) return;
 
@@ -1246,15 +2447,18 @@
         "/results"
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to load results."
+          result.error ||
+          "Unable to load results."
         );
       }
 
-      currentResults = result.results || [];
+      currentResults =
+        result.results || [];
 
       renderResults();
       renderVisualization();
@@ -1273,7 +2477,9 @@
 
   function renderResults() {
     const container =
-      document.getElementById("resultsContainer");
+      document.getElementById(
+        "resultsContainer"
+      );
 
     if (!container) return;
 
@@ -1283,6 +2489,7 @@
           No structured results yet.
         </div>
       `;
+
       return;
     }
 
@@ -1308,14 +2515,19 @@
         const notes = result.notes
           ? `
             <div class="result-notes">
-              ${escapeHtml(result.notes)}
+              ${escapeHtml(
+                result.notes
+              )}
             </div>
           `
           : "";
 
         return `
           <tr>
-            <td>${sample}</td>
+
+            <td>
+              ${sample}
+            </td>
 
             <td>
               ${measurement}
@@ -1326,27 +2538,36 @@
               ${value}
             </td>
 
-            <td>${unit || "—"}</td>
+            <td>
+              ${unit || "—"}
+            </td>
 
             <td>
+
               <div class="row-actions">
 
                 <button
                   class="small-edit"
-                  onclick="editResult(${result.id})"
+                  onclick="editResult(
+                    ${result.id}
+                  )"
                 >
                   Edit
                 </button>
 
                 <button
                   class="small-delete"
-                  onclick="deleteResult(${result.id})"
+                  onclick="deleteResult(
+                    ${result.id}
+                  )"
                 >
                   Delete
                 </button>
 
               </div>
+
             </td>
+
           </tr>
         `;
       })
@@ -1358,6 +2579,7 @@
         <table class="results-table">
 
           <thead>
+
             <tr>
               <th>Sample</th>
               <th>Measurement</th>
@@ -1365,6 +2587,7 @@
               <th>Unit</th>
               <th></th>
             </tr>
+
           </thead>
 
           <tbody>
@@ -1379,22 +2602,33 @@
 
 
   async function addResult() {
-    const experimentId = getExperimentId();
+    const experimentId =
+      getExperimentId();
 
     const sampleName =
-      document.getElementById("resultSample").value.trim();
+      document.getElementById(
+        "resultSample"
+      ).value.trim();
 
     const measurement =
-      document.getElementById("resultMeasurement").value.trim();
+      document.getElementById(
+        "resultMeasurement"
+      ).value.trim();
 
     const value =
-      document.getElementById("resultValue").value;
+      document.getElementById(
+        "resultValue"
+      ).value;
 
     const unit =
-      document.getElementById("resultUnit").value.trim();
+      document.getElementById(
+        "resultUnit"
+      ).value.trim();
 
     const notes =
-      document.getElementById("resultNotes").value.trim();
+      document.getElementById(
+        "resultNotes"
+      ).value.trim();
 
     if (!measurement) {
       alert("Enter a measurement.");
@@ -1409,13 +2643,16 @@
     try {
       const response = await fetch(
         "/api/experiments/" +
-        encodeURIComponent(experimentId) +
+        encodeURIComponent(
+          experimentId
+        ) +
         "/results",
         {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
 
           body: JSON.stringify({
@@ -1428,19 +2665,35 @@
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to add result."
+          result.error ||
+          "Unable to add result."
         );
       }
 
-      document.getElementById("resultSample").value = "";
-      document.getElementById("resultMeasurement").value = "";
-      document.getElementById("resultValue").value = "";
-      document.getElementById("resultUnit").value = "";
-      document.getElementById("resultNotes").value = "";
+      document.getElementById(
+        "resultSample"
+      ).value = "";
+
+      document.getElementById(
+        "resultMeasurement"
+      ).value = "";
+
+      document.getElementById(
+        "resultValue"
+      ).value = "";
+
+      document.getElementById(
+        "resultUnit"
+      ).value = "";
+
+      document.getElementById(
+        "resultNotes"
+      ).value = "";
 
       await loadResults();
 
@@ -1453,13 +2706,17 @@
 
   function editResult(resultId) {
     const result = currentResults.find(
-      item => Number(item.id) === Number(resultId)
+      item =>
+        Number(item.id) ===
+        Number(resultId)
     );
 
     if (!result) return;
 
     const container =
-      document.getElementById("resultsContainer");
+      document.getElementById(
+        "resultsContainer"
+      );
 
     container.innerHTML = `
       <div class="result-editor">
@@ -1470,14 +2727,18 @@
             id="editResultSample"
             type="text"
             placeholder="Sample name"
-            value="${escapeHtml(result.sample_name || "")}"
+            value="${escapeHtml(
+              result.sample_name || ""
+            )}"
           >
 
           <input
             id="editResultMeasurement"
             type="text"
             placeholder="Measurement"
-            value="${escapeHtml(result.measurement || "")}"
+            value="${escapeHtml(
+              result.measurement || ""
+            )}"
           >
 
           <input
@@ -1485,14 +2746,18 @@
             type="number"
             step="any"
             placeholder="Value"
-            value="${escapeHtml(result.value ?? "")}"
+            value="${escapeHtml(
+              result.value ?? ""
+            )}"
           >
 
           <input
             id="editResultUnit"
             type="text"
             placeholder="Unit"
-            value="${escapeHtml(result.unit || "")}"
+            value="${escapeHtml(
+              result.unit || ""
+            )}"
           >
 
         </div>
@@ -1501,13 +2766,17 @@
           id="editResultNotes"
           class="log-edit-textarea"
           placeholder="Notes"
-        >${escapeHtml(result.notes || "")}</textarea>
+        >${escapeHtml(
+          result.notes || ""
+        )}</textarea>
 
         <div class="edit-actions">
 
           <button
             class="save-button"
-            onclick="saveResult(${resultId})"
+            onclick="saveResult(
+              ${resultId}
+            )"
           >
             Save Result
           </button>
@@ -1527,7 +2796,8 @@
 
 
   async function saveResult(resultId) {
-    const experimentId = getExperimentId();
+    const experimentId =
+      getExperimentId();
 
     const sampleName =
       document.getElementById(
@@ -1567,14 +2837,19 @@
     try {
       const response = await fetch(
         "/api/experiments/" +
-        encodeURIComponent(experimentId) +
+        encodeURIComponent(
+          experimentId
+        ) +
         "/results/" +
-        encodeURIComponent(resultId),
+        encodeURIComponent(
+          resultId
+        ),
         {
           method: "PUT",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
 
           body: JSON.stringify({
@@ -1587,11 +2862,13 @@
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to update result."
+          result.error ||
+          "Unable to update result."
         );
       }
 
@@ -1611,24 +2888,31 @@
 
     if (!confirmed) return;
 
-    const experimentId = getExperimentId();
+    const experimentId =
+      getExperimentId();
 
     try {
       const response = await fetch(
         "/api/experiments/" +
-        encodeURIComponent(experimentId) +
+        encodeURIComponent(
+          experimentId
+        ) +
         "/results/" +
-        encodeURIComponent(resultId),
+        encodeURIComponent(
+          resultId
+        ),
         {
           method: "DELETE"
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to delete result."
+          result.error ||
+          "Unable to delete result."
         );
       }
 
@@ -1650,10 +2934,14 @@
 
     currentResults.forEach(result => {
       const measurement =
-        String(result.measurement || "").trim();
+        String(
+          result.measurement || ""
+        ).trim();
 
       const unit =
-        String(result.unit || "").trim();
+        String(
+          result.unit || ""
+        ).trim();
 
       if (!measurement) return;
 
@@ -1678,7 +2966,9 @@
   }
 
 
-  function renderVisualization(selectedKey = null) {
+  function renderVisualization(
+    selectedKey = null
+  ) {
     const container =
       document.getElementById(
         "visualizationContainer"
@@ -1686,7 +2976,8 @@
 
     if (!container) return;
 
-    const groups = getMeasurementGroups();
+    const groups =
+      getMeasurementGroups();
 
     if (groups.length === 0) {
       container.innerHTML = `
@@ -1694,11 +2985,15 @@
           Add structured results to generate a visualization.
         </div>
       `;
+
       return;
     }
 
     let selectedGroup =
-      groups.find(group => group.key === selectedKey);
+      groups.find(
+        group =>
+          group.key === selectedKey
+      );
 
     if (!selectedGroup) {
       selectedGroup = groups[0];
@@ -1712,9 +3007,12 @@
 
         return `
           <option
-            value="${escapeHtml(group.key)}"
+            value="${escapeHtml(
+              group.key
+            )}"
             ${
-              group.key === selectedGroup.key
+              group.key ===
+              selectedGroup.key
                 ? "selected"
                 : ""
             }
@@ -1756,19 +3054,24 @@
 
     if (!selector) return;
 
-    renderVisualization(selector.value);
+    renderVisualization(
+      selector.value
+    );
   }
-
-
-  function drawBarChart(group) {
+    function drawBarChart(group) {
     const container =
-      document.getElementById("chartContainer");
+      document.getElementById(
+        "chartContainer"
+      );
 
     if (!container) return;
 
-    const validResults = group.results
-      .filter(result =>
-        Number.isFinite(Number(result.value))
+    const validResults =
+      group.results.filter(
+        result =>
+          Number.isFinite(
+            Number(result.value)
+          )
       );
 
     if (validResults.length === 0) {
@@ -1777,16 +3080,18 @@
           No numeric values are available for this measurement.
         </div>
       `;
+
       return;
     }
 
     const values =
       validResults.map(
-        result => Number(result.value)
+        result =>
+          Number(result.value)
       );
 
-    const maxValue = Math.max(...values);
-    const minValue = Math.min(...values, 0);
+    const maxValue =
+      Math.max(...values);
 
     let chartMax = maxValue;
 
@@ -1797,20 +3102,26 @@
     chartMax = chartMax * 1.15;
 
     const tickCount = 5;
-
     const ticks = [];
 
-    for (let i = tickCount; i >= 0; i--) {
+    for (
+      let i = tickCount;
+      i >= 0;
+      i--
+    ) {
       const value =
         (chartMax / tickCount) * i;
 
-      ticks.push(formatChartNumber(value));
+      ticks.push(
+        formatChartNumber(value)
+      );
     }
 
     const bars = validResults
       .map((result, index) => {
 
-        const value = Number(result.value);
+        const value =
+          Number(result.value);
 
         const safeValue =
           Math.max(0, value);
@@ -1818,7 +3129,10 @@
         const height =
           chartMax === 0
             ? 0
-            : (safeValue / chartMax) * 100;
+            : (
+                safeValue /
+                chartMax
+              ) * 100;
 
         const sampleName =
           result.sample_name ||
@@ -1829,7 +3143,9 @@
 
             <div class="bar-value">
               ${escapeHtml(
-                formatChartNumber(value)
+                formatChartNumber(
+                  value
+                )
               )}
             </div>
 
@@ -1840,9 +3156,11 @@
                 sampleName +
                 ": " +
                 value +
-                (group.unit
-                  ? " " + group.unit
-                  : "")
+                (
+                  group.unit
+                    ? " " + group.unit
+                    : ""
+                )
               )}"
             ></div>
 
@@ -1860,29 +3178,55 @@
 
         return `
           <div class="x-label">
-            ${escapeHtml(sampleName)}
+            ${escapeHtml(
+              sampleName
+            )}
           </div>
         `;
       })
       .join("");
 
     const gridLines = `
-      <div class="grid-line" style="top: 0%;"></div>
-      <div class="grid-line" style="top: 20%;"></div>
-      <div class="grid-line" style="top: 40%;"></div>
-      <div class="grid-line" style="top: 60%;"></div>
-      <div class="grid-line" style="top: 80%;"></div>
+      <div
+        class="grid-line"
+        style="top: 0%;"
+      ></div>
+
+      <div
+        class="grid-line"
+        style="top: 20%;"
+      ></div>
+
+      <div
+        class="grid-line"
+        style="top: 40%;"
+      ></div>
+
+      <div
+        class="grid-line"
+        style="top: 60%;"
+      ></div>
+
+      <div
+        class="grid-line"
+        style="top: 80%;"
+      ></div>
     `;
 
     container.innerHTML = `
       <div class="chart-title">
-        ${escapeHtml(group.measurement)}
+        ${escapeHtml(
+          group.measurement
+        )}
       </div>
 
       <div class="chart-unit">
         ${
           group.unit
-            ? "Unit: " + escapeHtml(group.unit)
+            ? "Unit: " +
+              escapeHtml(
+                group.unit
+              )
             : "No unit specified"
         }
       </div>
@@ -1900,13 +3244,18 @@
           <div class="chart">
 
             <div class="y-axis">
+
               ${ticks
                 .map(
                   tick =>
-                    `<span>${escapeHtml(tick)}</span>`
+                    `<span>${escapeHtml(
+                      tick
+                    )}</span>`
                 )
                 .join("")}
+
             </div>
+
 
             <div class="chart-main">
 
@@ -1933,7 +3282,8 @@
 
 
   function formatChartNumber(value) {
-    const number = Number(value);
+    const number =
+      Number(value);
 
     if (!Number.isFinite(number)) {
       return "";
@@ -1956,14 +3306,17 @@
 
 
   // ============================================================
-  // NOTES
+  // NOTES / EXPERIMENT LOG
   // ============================================================
 
   async function loadNotes() {
-    const id = getExperimentId();
+    const id =
+      getExperimentId();
 
     const container =
-      document.getElementById("experimentLog");
+      document.getElementById(
+        "experimentLog"
+      );
 
     if (!container) return;
 
@@ -1974,7 +3327,8 @@
         "/notes"
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
@@ -1983,7 +3337,9 @@
         );
       }
 
-      currentNotes = result.notes || [];
+      currentNotes =
+        result.notes || [];
+
       renderNotes();
 
     } catch (error) {
@@ -2000,7 +3356,9 @@
 
   function renderNotes() {
     const container =
-      document.getElementById("experimentLog");
+      document.getElementById(
+        "experimentLog"
+      );
 
     if (!container) return;
 
@@ -2010,88 +3368,110 @@
           No experiment entries yet.
         </div>
       `;
+
       return;
     }
 
-    container.innerHTML = currentNotes
-      .map(note => {
+    container.innerHTML =
+      currentNotes
+        .map(note => {
 
-        const type = escapeHtml(
-          note.entry_type || "Observation"
-        );
+          const type =
+            escapeHtml(
+              note.entry_type ||
+              "Observation"
+            );
 
-        const text = escapeHtml(
-          note.note || ""
-        );
+          const text =
+            escapeHtml(
+              note.note || ""
+            );
 
-        const date = formatDate(
-          note.created_at
-        );
+          const date =
+            formatDate(
+              note.created_at
+            );
 
-        return `
-          <div
-            class="log-entry"
-            id="note-${note.id}"
-          >
+          return `
+            <div
+              class="log-entry"
+              id="note-${note.id}"
+            >
 
-            <div class="log-header">
+              <div class="log-header">
 
-              <div class="log-meta">
+                <div class="log-meta">
 
-                <span class="log-type">
-                  ${type}
-                </span>
+                  <span class="log-type">
+                    ${type}
+                  </span>
 
-                <span class="log-date">
-                  ${escapeHtml(date)}
-                </span>
+                  <span class="log-date">
+                    ${escapeHtml(
+                      date
+                    )}
+                  </span>
+
+                </div>
+
+
+                <div class="log-controls">
+
+                  <button
+                    class="log-edit-button"
+                    onclick="editNote(
+                      ${note.id}
+                    )"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    class="log-delete-button"
+                    onclick="deleteNote(
+                      ${note.id}
+                    )"
+                  >
+                    Delete
+                  </button>
+
+                </div>
 
               </div>
 
-              <div class="log-controls">
 
-                <button
-                  class="log-edit-button"
-                  onclick="editNote(${note.id})"
-                >
-                  Edit
-                </button>
-
-                <button
-                  class="log-delete-button"
-                  onclick="deleteNote(${note.id})"
-                >
-                  Delete
-                </button>
-
+              <div class="log-text">
+                ${text}
               </div>
 
             </div>
-
-            <div class="log-text">
-              ${text}
-            </div>
-
-          </div>
-        `;
-      })
-      .join("");
+          `;
+        })
+        .join("");
   }
 
 
   async function addNote() {
-    const id = getExperimentId();
+    const id =
+      getExperimentId();
 
     const textarea =
-      document.getElementById("newNote");
+      document.getElementById(
+        "newNote"
+      );
 
     const typeSelect =
-      document.getElementById("entryType");
+      document.getElementById(
+        "entryType"
+      );
 
-    const note = textarea.value.trim();
+    const note =
+      textarea.value.trim();
 
     if (!note) {
-      alert("Enter a note first.");
+      alert(
+        "Enter a note first."
+      );
       return;
     }
 
@@ -2104,21 +3484,25 @@
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
 
           body: JSON.stringify({
             note,
-            entry_type: typeSelect.value
+            entry_type:
+              typeSelect.value
           })
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.error || "Unable to add entry."
+          result.error ||
+          "Unable to add entry."
         );
       }
 
@@ -2134,14 +3518,19 @@
 
 
   function editNote(noteId) {
-    const note = currentNotes.find(
-      item => Number(item.id) === Number(noteId)
-    );
+    const note =
+      currentNotes.find(
+        item =>
+          Number(item.id) ===
+          Number(noteId)
+      );
 
     if (!note) return;
 
     const container =
-      document.getElementById("note-" + noteId);
+      document.getElementById(
+        "note-" + noteId
+      );
 
     if (!container) return;
 
@@ -2149,7 +3538,10 @@
       <textarea
         class="log-edit-textarea"
         id="edit-note-${noteId}"
-      >${escapeHtml(note.note || "")}</textarea>
+      >${escapeHtml(
+        note.note || ""
+      )}</textarea>
+
 
       <div class="log-edit-actions">
 
@@ -2157,19 +3549,39 @@
           class="log-edit-select"
           id="edit-type-${noteId}"
         >
-          <option value="Observation">Observation</option>
-          <option value="Result">Result</option>
-          <option value="Procedure">Procedure</option>
-          <option value="Issue">Issue</option>
-          <option value="General">General</option>
+
+          <option value="Observation">
+            Observation
+          </option>
+
+          <option value="Result">
+            Result
+          </option>
+
+          <option value="Procedure">
+            Procedure
+          </option>
+
+          <option value="Issue">
+            Issue
+          </option>
+
+          <option value="General">
+            General
+          </option>
+
         </select>
+
 
         <button
           class="log-save-button"
-          onclick="saveNote(${noteId})"
+          onclick="saveNote(
+            ${noteId}
+          )"
         >
           Save
         </button>
+
 
         <button
           class="log-cancel-button"
@@ -2184,12 +3596,14 @@
     document.getElementById(
       "edit-type-" + noteId
     ).value =
-      note.entry_type || "Observation";
+      note.entry_type ||
+      "Observation";
   }
 
 
   async function saveNote(noteId) {
-    const experimentId = getExperimentId();
+    const experimentId =
+      getExperimentId();
 
     const textarea =
       document.getElementById(
@@ -2201,34 +3615,44 @@
         "edit-type-" + noteId
       );
 
-    const note = textarea.value.trim();
+    const note =
+      textarea.value.trim();
 
     if (!note) {
-      alert("Entry cannot be empty.");
+      alert(
+        "Entry cannot be empty."
+      );
       return;
     }
 
     try {
       const response = await fetch(
         "/api/experiments/" +
-        encodeURIComponent(experimentId) +
+        encodeURIComponent(
+          experimentId
+        ) +
         "/notes/" +
-        encodeURIComponent(noteId),
+        encodeURIComponent(
+          noteId
+        ),
         {
           method: "PUT",
 
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type":
+              "application/json"
           },
 
           body: JSON.stringify({
             note,
-            entry_type: typeSelect.value
+            entry_type:
+              typeSelect.value
           })
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
@@ -2253,20 +3677,26 @@
 
     if (!confirmed) return;
 
-    const experimentId = getExperimentId();
+    const experimentId =
+      getExperimentId();
 
     try {
       const response = await fetch(
         "/api/experiments/" +
-        encodeURIComponent(experimentId) +
+        encodeURIComponent(
+          experimentId
+        ) +
         "/notes/" +
-        encodeURIComponent(noteId),
+        encodeURIComponent(
+          noteId
+        ),
         {
           method: "DELETE"
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(
@@ -2289,6 +3719,7 @@
   // ============================================================
 
   loadExperiment();
+
 </script>
 
 </body>
