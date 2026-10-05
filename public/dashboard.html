@@ -23,6 +23,8 @@
       --border: #dfe5dc;
       --warning: #fff5dd;
       --warning-text: #8a5a00;
+      --danger: #a83232;
+      --danger-light: #fbeaea;
     }
 
     body {
@@ -167,6 +169,10 @@
       color: #a26300;
     }
 
+    .overdue-number {
+      color: var(--danger);
+    }
+
     /* CONTENT */
 
     .dashboard-grid {
@@ -209,6 +215,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 16px;
+      cursor: pointer;
+    }
+
+    .experiment:hover {
+      background: #fafbf9;
     }
 
     .experiment:last-child {
@@ -232,6 +244,7 @@
       font-weight: 600;
       background: var(--green-light);
       color: var(--green);
+      white-space: nowrap;
     }
 
     .status.pending {
@@ -244,29 +257,88 @@
     .task {
       padding: 17px 20px;
       border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .task:hover {
+      background: #fafbf9;
     }
 
     .task:last-child {
       border-bottom: none;
     }
 
+    .task.urgent {
+      background: var(--warning);
+    }
+
+    .task.overdue {
+      background: var(--danger-light);
+    }
+
+    .task-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
     .task-title {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 6px;
+    }
+
+    .priority {
+      padding: 4px 7px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .priority.high {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .priority.medium {
+      background: var(--warning);
+      color: var(--warning-text);
+    }
+
+    .priority.low {
+      background: #f1f1f1;
+      color: #666;
     }
 
     .task-meta {
       color: var(--muted);
       font-size: 12px;
-    }
-
-    .task.urgent {
-      background: var(--warning);
+      line-height: 1.5;
     }
 
     .task.urgent .task-meta {
       color: var(--warning-text);
+    }
+
+    .task.overdue .task-meta {
+      color: var(--danger);
+    }
+
+    .task-experiment {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      padding: 24px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     /* AI CARD */
@@ -375,9 +447,9 @@
 
     <nav class="nav">
       <a href="/dashboard.html" class="active">Dashboard</a>
-      <a href="#">Experiments</a>
+      <a href="/experiments.html">Experiments</a>
       <a href="#">Inventory</a>
-      <a href="#">Tasks</a>
+      <a href="/tasks.html">Tasks</a>
       <a href="#">AI Assistant</a>
     </nav>
 
@@ -398,40 +470,85 @@
         <p>Monitor experiments, tasks, and laboratory operations.</p>
       </div>
 
-<button
-  class="new-experiment"
-  onclick="window.location.href='/new-experiment.html'"
->
-  + New Experiment
-</button>
+      <button
+        class="new-experiment"
+        onclick="window.location.href='/new-experiment.html'"
+      >
+        + New Experiment
+      </button>
+
     </div>
 
 
     <section class="stats">
 
-<div class="stat-card">
-  <div class="stat-label">ACTIVE EXPERIMENTS</div>
-  <div class="stat-number" id="experimentCount">—</div>
-  <div class="stat-description" id="experimentDescription">
-    Loading experiments...
-  </div>
-</div>
       <div class="stat-card">
-        <div class="stat-label">TASKS DUE</div>
-        <div class="stat-number">7</div>
-        <div class="stat-description">3 due today</div>
+        <div class="stat-label">ACTIVE EXPERIMENTS</div>
+
+        <div
+          class="stat-number"
+          id="experimentCount"
+        >
+          —
+        </div>
+
+        <div
+          class="stat-description"
+          id="experimentDescription"
+        >
+          Loading experiments...
+        </div>
       </div>
 
+
       <div class="stat-card">
-        <div class="stat-label">INVENTORY ITEMS</div>
-        <div class="stat-number">126</div>
-        <div class="stat-description">Across 8 storage locations</div>
+        <div class="stat-label">OPEN TASKS</div>
+
+        <div
+          class="stat-number"
+          id="openTaskCount"
+        >
+          —
+        </div>
+
+        <div
+          class="stat-description"
+          id="taskDescription"
+        >
+          Loading tasks...
+        </div>
       </div>
+
+
+      <div class="stat-card">
+        <div class="stat-label">OVERDUE TASKS</div>
+
+        <div
+          class="stat-number overdue-number"
+          id="overdueTaskCount"
+        >
+          —
+        </div>
+
+        <div
+          class="stat-description"
+          id="overdueDescription"
+        >
+          Checking deadlines...
+        </div>
+      </div>
+
 
       <div class="stat-card">
         <div class="stat-label">INVENTORY ALERTS</div>
-        <div class="stat-number alert-number">3</div>
-        <div class="stat-description">Require attention</div>
+
+        <div class="stat-number alert-number">
+          3
+        </div>
+
+        <div class="stat-description">
+          Inventory system coming next
+        </div>
       </div>
 
     </section>
@@ -443,17 +560,20 @@
 
         <div class="panel-header">
           <h2>Active Experiments</h2>
-          <a href="#">View all</a>
+          <a href="/experiments.html">View all</a>
         </div>
 
-<div id="experimentsList">
-  <div class="experiment">
-    <div>
-      <h3>Loading experiments...</h3>
-      <p>Please wait</p>
-    </div>
-  </div>
-</div>
+        <div id="experimentsList">
+
+          <div class="experiment">
+            <div>
+              <h3>Loading experiments...</h3>
+              <p>Please wait</p>
+            </div>
+          </div>
+
+        </div>
+
       </section>
 
 
@@ -461,27 +581,15 @@
 
         <div class="panel-header">
           <h2>Upcoming Tasks</h2>
-          <a href="#">View all</a>
+          <a href="/tasks.html">View all</a>
         </div>
 
-        <div class="task urgent">
-          <div class="task-title">Check cell cultures</div>
-          <div class="task-meta">Due today · 2:00 PM</div>
-        </div>
+        <div id="tasksList">
 
-        <div class="task">
-          <div class="task-title">Record hydrogel measurements</div>
-          <div class="task-meta">Due today · 5:00 PM</div>
-        </div>
+          <div class="empty-state">
+            Loading tasks...
+          </div>
 
-        <div class="task">
-          <div class="task-title">Prepare assay reagents</div>
-          <div class="task-meta">Tomorrow</div>
-        </div>
-
-        <div class="task">
-          <div class="task-title">Review microscopy images</div>
-          <div class="task-meta">Oct 6</div>
         </div>
 
       </section>
@@ -499,11 +607,14 @@
       </p>
 
       <div class="ai-input">
+
         <input
           type="text"
           placeholder="Ask LabOps AI about your lab..."
         >
+
         <button>Ask</button>
+
       </div>
 
     </section>
@@ -512,88 +623,13 @@
 
 </div>
 <script>
-  async function loadExperiments() {
-    const container = document.getElementById("experimentsList");
 
-    try {
-      const response = await fetch("/api/experiments");
-      const result = await response.json();
+  let currentExperiments = [];
+  let currentTasks = [];
 
-      if (!response.ok || !result.success) {
-        throw new Error("Unable to load experiments.");
-      }
-
-      const experiments = result.experiments || [];
-const activeExperiments = experiments.filter(
-  (experiment) =>
-    experiment.status !== "Completed" &&
-    experiment.status !== "On Hold"
-);
-
-document.getElementById("experimentCount").textContent =
-  activeExperiments.length;
-
-document.getElementById("experimentDescription").textContent =
-  experiments.length === 1
-    ? "1 total experiment"
-    : `${experiments.length} total experiments`;
-      if (experiments.length === 0) {
-        container.innerHTML = `
-          <div class="experiment">
-            <div>
-              <h3>No experiments yet</h3>
-              <p>Create your first experiment to get started.</p>
-            </div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = experiments
-        .slice(0, 5)
-        .map((experiment) => {
-          const title = escapeHtml(experiment.title || "Untitled Experiment");
-          const project = escapeHtml(experiment.project || "Uncategorized");
-          const status = escapeHtml(experiment.status || "Planning");
-          const researcher = escapeHtml(experiment.researcher || "");
-
-          let details = project;
-
-          if (researcher) {
-            details += " · " + researcher;
-          }
-
-          return `
-            <div class="experiment">
-              <div>
-                <h3>${title}</h3>
-                <p>${details}</p>
-              </div>
-
-              <span class="status">
-                ${status}
-              </span>
-            </div>
-          `;
-        })
-        .join("");
-
-    } catch (error) {
-      console.error(error);
-
-      container.innerHTML = `
-        <div class="experiment">
-          <div>
-            <h3>Unable to load experiments</h3>
-            <p>Please refresh the page and try again.</p>
-          </div>
-        </div>
-      `;
-    }
-  }
 
   function escapeHtml(value) {
-    return String(value)
+    return String(value ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
@@ -601,7 +637,768 @@ document.getElementById("experimentDescription").textContent =
       .replaceAll("'", "&#039;");
   }
 
-  loadExperiments();
+
+  function parseDateOnly(value) {
+    if (!value) return null;
+
+    const parts =
+      String(value).split("-");
+
+    if (parts.length !== 3) {
+      const fallback =
+        new Date(value);
+
+      return Number.isNaN(
+        fallback.getTime()
+      )
+        ? null
+        : fallback;
+    }
+
+    const date =
+      new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2])
+      );
+
+    return Number.isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
+  }
+
+
+  function getToday() {
+    const today =
+      new Date();
+
+    today.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    return today;
+  }
+
+
+  function isSameDay(
+    first,
+    second
+  ) {
+    return (
+      first.getFullYear() ===
+        second.getFullYear() &&
+
+      first.getMonth() ===
+        second.getMonth() &&
+
+      first.getDate() ===
+        second.getDate()
+    );
+  }
+
+
+  function isTaskOverdue(task) {
+    if (
+      !task.due_date ||
+      task.status === "Completed"
+    ) {
+      return false;
+    }
+
+    const due =
+      parseDateOnly(
+        task.due_date
+      );
+
+    if (!due) {
+      return false;
+    }
+
+    due.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    return due < getToday();
+  }
+
+
+  function isTaskDueToday(task) {
+    if (
+      !task.due_date ||
+      task.status === "Completed"
+    ) {
+      return false;
+    }
+
+    const due =
+      parseDateOnly(
+        task.due_date
+      );
+
+    if (!due) {
+      return false;
+    }
+
+    return isSameDay(
+      due,
+      getToday()
+    );
+  }
+
+
+  function formatTaskDate(value) {
+    const date =
+      parseDateOnly(value);
+
+    if (!date) {
+      return "No due date";
+    }
+
+    const today =
+      getToday();
+
+    if (
+      isSameDay(
+        date,
+        today
+      )
+    ) {
+      return "Due today";
+    }
+
+    const tomorrow =
+      new Date(today);
+
+    tomorrow.setDate(
+      tomorrow.getDate() + 1
+    );
+
+    if (
+      isSameDay(
+        date,
+        tomorrow
+      )
+    ) {
+      return "Due tomorrow";
+    }
+
+    if (date < today) {
+      return (
+        "Overdue · " +
+        date.toLocaleDateString(
+          undefined,
+          {
+            month: "short",
+            day: "numeric"
+          }
+        )
+      );
+    }
+
+    return (
+      "Due " +
+      date.toLocaleDateString(
+        undefined,
+        {
+          month: "short",
+          day: "numeric",
+          year:
+            date.getFullYear() !==
+            today.getFullYear()
+              ? "numeric"
+              : undefined
+        }
+      )
+    );
+  }
+
+
+  // ============================================================
+  // EXPERIMENTS
+  // ============================================================
+
+  async function loadExperiments() {
+    const container =
+      document.getElementById(
+        "experimentsList"
+      );
+
+    try {
+      const response =
+        await fetch(
+          "/api/experiments"
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.error ||
+          "Unable to load experiments."
+        );
+      }
+
+      currentExperiments =
+        result.experiments || [];
+
+      const activeExperiments =
+        currentExperiments.filter(
+          experiment =>
+            experiment.status !==
+              "Completed" &&
+            experiment.status !==
+              "On Hold"
+        );
+
+      document.getElementById(
+        "experimentCount"
+      ).textContent =
+        activeExperiments.length;
+
+      document.getElementById(
+        "experimentDescription"
+      ).textContent =
+        currentExperiments.length === 1
+          ? "1 total experiment"
+          : `${currentExperiments.length} total experiments`;
+
+      renderExperiments(
+        activeExperiments
+      );
+
+    } catch (error) {
+      console.error(error);
+
+      document.getElementById(
+        "experimentCount"
+      ).textContent = "—";
+
+      document.getElementById(
+        "experimentDescription"
+      ).textContent =
+        "Unable to load experiments";
+
+      container.innerHTML = `
+        <div class="empty-state">
+          Unable to load experiments.
+          Please refresh the page and try again.
+        </div>
+      `;
+    }
+  }
+
+
+  function renderExperiments(
+    experiments
+  ) {
+    const container =
+      document.getElementById(
+        "experimentsList"
+      );
+
+    if (!container) return;
+
+    if (
+      !experiments ||
+      experiments.length === 0
+    ) {
+      container.innerHTML = `
+        <div class="empty-state">
+          No active experiments.
+          Create a new experiment or view
+          completed experiments from the
+          Experiments page.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      experiments
+        .slice(0, 5)
+        .map(experiment => {
+
+          const title =
+            escapeHtml(
+              experiment.title ||
+              "Untitled Experiment"
+            );
+
+          const project =
+            escapeHtml(
+              experiment.project ||
+              "Uncategorized"
+            );
+
+          const researcher =
+            escapeHtml(
+              experiment.researcher ||
+              ""
+            );
+
+          const status =
+            escapeHtml(
+              experiment.status ||
+              "Planning"
+            );
+
+          let details =
+            project;
+
+          if (researcher) {
+            details +=
+              " · " +
+              researcher;
+          }
+
+          return `
+            <div
+              class="experiment"
+              onclick="window.location.href='/experiment.html?id=${encodeURIComponent(
+                experiment.id
+              )}'"
+            >
+
+              <div>
+                <h3>
+                  ${title}
+                </h3>
+
+                <p>
+                  ${details}
+                </p>
+              </div>
+
+              <span class="status">
+                ${status}
+              </span>
+
+            </div>
+          `;
+        })
+        .join("");
+  }
+
+
+  // ============================================================
+  // TASKS
+  // ============================================================
+
+  async function loadTasks() {
+    const container =
+      document.getElementById(
+        "tasksList"
+      );
+
+    try {
+      const response =
+        await fetch(
+          "/api/tasks"
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.error ||
+          "Unable to load tasks."
+        );
+      }
+
+      currentTasks =
+        result.tasks || [];
+
+      updateTaskStats();
+      renderUpcomingTasks();
+
+    } catch (error) {
+      console.error(error);
+
+      document.getElementById(
+        "openTaskCount"
+      ).textContent = "—";
+
+      document.getElementById(
+        "taskDescription"
+      ).textContent =
+        "Unable to load tasks";
+
+      document.getElementById(
+        "overdueTaskCount"
+      ).textContent = "—";
+
+      document.getElementById(
+        "overdueDescription"
+      ).textContent =
+        "Unable to check deadlines";
+
+      container.innerHTML = `
+        <div class="empty-state">
+          Unable to load tasks.
+          Please refresh the page and try again.
+        </div>
+      `;
+    }
+  }
+
+
+  function updateTaskStats() {
+    const openTasks =
+      currentTasks.filter(
+        task =>
+          task.status !==
+          "Completed"
+      );
+
+    const overdueTasks =
+      openTasks.filter(
+        task =>
+          isTaskOverdue(task)
+      );
+
+    const dueToday =
+      openTasks.filter(
+        task =>
+          isTaskDueToday(task)
+      );
+
+    document.getElementById(
+      "openTaskCount"
+    ).textContent =
+      openTasks.length;
+
+    if (openTasks.length === 0) {
+      document.getElementById(
+        "taskDescription"
+      ).textContent =
+        "No open tasks";
+
+    } else if (
+      dueToday.length === 0
+    ) {
+      document.getElementById(
+        "taskDescription"
+      ).textContent =
+        `${openTasks.length} open · none due today`;
+
+    } else {
+      document.getElementById(
+        "taskDescription"
+      ).textContent =
+        `${dueToday.length} ${
+          dueToday.length === 1
+            ? "task"
+            : "tasks"
+        } due today`;
+    }
+
+    document.getElementById(
+      "overdueTaskCount"
+    ).textContent =
+      overdueTasks.length;
+
+    document.getElementById(
+      "overdueDescription"
+    ).textContent =
+      overdueTasks.length === 0
+        ? "All deadlines on track"
+        : overdueTasks.length === 1
+          ? "1 task needs attention"
+          : `${overdueTasks.length} tasks need attention`;
+  }
+
+
+  function getExperimentName(
+    experimentId
+  ) {
+    if (!experimentId) {
+      return "";
+    }
+
+    const experiment =
+      currentExperiments.find(
+        item =>
+          Number(item.id) ===
+          Number(experimentId)
+      );
+
+    return experiment
+      ? experiment.title || ""
+      : "";
+  }
+
+
+  function taskPriorityRank(
+    priority
+  ) {
+    if (priority === "High") {
+      return 1;
+    }
+
+    if (priority === "Medium") {
+      return 2;
+    }
+
+    return 3;
+  }
+
+
+  function sortTasks(
+    first,
+    second
+  ) {
+    const firstOverdue =
+      isTaskOverdue(first);
+
+    const secondOverdue =
+      isTaskOverdue(second);
+
+    if (
+      firstOverdue !==
+      secondOverdue
+    ) {
+      return firstOverdue
+        ? -1
+        : 1;
+    }
+
+    const firstDate =
+      parseDateOnly(
+        first.due_date
+      );
+
+    const secondDate =
+      parseDateOnly(
+        second.due_date
+      );
+
+    if (
+      firstDate &&
+      secondDate
+    ) {
+      const difference =
+        firstDate -
+        secondDate;
+
+      if (difference !== 0) {
+        return difference;
+      }
+    }
+
+    if (
+      firstDate &&
+      !secondDate
+    ) {
+      return -1;
+    }
+
+    if (
+      !firstDate &&
+      secondDate
+    ) {
+      return 1;
+    }
+
+    return (
+      taskPriorityRank(
+        first.priority
+      ) -
+      taskPriorityRank(
+        second.priority
+      )
+    );
+  }
+  function renderUpcomingTasks() {
+    const container =
+      document.getElementById(
+        "tasksList"
+      );
+
+    if (!container) return;
+
+    const openTasks =
+      currentTasks
+        .filter(
+          task =>
+            task.status !==
+            "Completed"
+        )
+        .sort(sortTasks);
+
+    if (openTasks.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          No open tasks. You're all caught up.
+        </div>
+      `;
+
+      return;
+    }
+
+    const tasksToShow =
+      openTasks.slice(0, 5);
+
+    container.innerHTML =
+      tasksToShow
+        .map(task => {
+
+          const overdue =
+            isTaskOverdue(task);
+
+          const dueToday =
+            isTaskDueToday(task);
+
+          const priority =
+            task.priority ||
+            "Medium";
+
+          const priorityClass =
+            String(priority)
+              .toLowerCase();
+
+          const experimentName =
+            getExperimentName(
+              task.experiment_id
+            );
+
+          let taskClass = "";
+
+          if (overdue) {
+            taskClass =
+              "overdue";
+          } else if (dueToday) {
+            taskClass =
+              "urgent";
+          }
+
+          let experimentHtml = "";
+
+          if (experimentName) {
+            experimentHtml = `
+              <div class="task-experiment">
+                Experiment:
+                ${escapeHtml(
+                  experimentName
+                )}
+              </div>
+            `;
+          }
+
+          const assignee =
+            task.assigned_to
+              ? `
+                · ${escapeHtml(
+                  task.assigned_to
+                )}
+              `
+              : "";
+
+          return `
+            <div
+              class="task ${taskClass}"
+              onclick="openTask(
+                ${task.id},
+                ${
+                  task.experiment_id
+                    ? Number(
+                        task.experiment_id
+                      )
+                    : "null"
+                }
+              )"
+            >
+
+              <div class="task-title-row">
+
+                <div class="task-title">
+                  ${escapeHtml(
+                    task.title ||
+                    "Untitled Task"
+                  )}
+                </div>
+
+                <span
+                  class="priority ${priorityClass}"
+                >
+                  ${escapeHtml(
+                    priority
+                  )}
+                </span>
+
+              </div>
+
+              <div class="task-meta">
+                ${escapeHtml(
+                  formatTaskDate(
+                    task.due_date
+                  )
+                )}
+                ${assignee}
+              </div>
+
+              ${experimentHtml}
+
+            </div>
+          `;
+        })
+        .join("");
+  }
+
+
+  function openTask(
+    taskId,
+    experimentId
+  ) {
+    /*
+      Tasks are managed on the main
+      Tasks page. The experiment ID
+      is retained here so this can be
+      expanded later if we add direct
+      task detail pages.
+    */
+
+    window.location.href =
+      "/tasks.html";
+  }
+
+
+  // ============================================================
+  // DASHBOARD STARTUP
+  // ============================================================
+
+  async function initializeDashboard() {
+    /*
+      Load experiments first so task
+      cards can display the name of
+      their linked experiment.
+    */
+
+    await loadExperiments();
+
+    await loadTasks();
+  }
+
+
+  initializeDashboard();
+
 </script>
+
 </body>
-</html>
+</html>  
