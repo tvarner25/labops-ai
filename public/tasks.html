@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks | LabOps AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --green: #274e13;
+      --green-dark: #19360b;
+      --green-light: #eaf1e6;
+      --background: #f6f8f5;
+      --white: #ffffff;
+      --text: #172116;
+      --muted: #6c766a;
+      --border: #dfe5dc;
+      --danger: #a83232;
+      --danger-light: #fbeaea;
+      --warning: #8a5a00;
+      --warning-light: #fff3d6;
+      --blue: #245b86;
+      --blue-light: #e8f2fa;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--green-dark);
+      color: white;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 42px;
+    }
+
+    .logo span {
+      opacity: 0.7;
+      font-weight: 400;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 13px 14px;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: rgba(255,255,255,0.12);
+      color: white;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.6;
+    }
+
+    .main {
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      padding: 38px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .primary-button {
+      border: none;
+      background: var(--green);
+      color: white;
+      padding: 11px 17px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary-button:hover {
+      background: var(--green-dark);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 27px;
+      font-weight: 700;
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+
+    .panel h2 {
+      font-size: 17px;
+      margin-bottom: 18px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 12px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task:last-child {
+      border-bottom: none;
+    }
+
+    .task-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    .task-title.completed {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .task-description {
+      color: #4b5549;
+      font-size: 13px;
+      line-height: 1.55;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-todo {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .status-progress {
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+
+    .status-completed {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .priority-low {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .priority-medium {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .priority-high {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .meta-text {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .experiment-link {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .experiment-link:hover {
+      text-decoration: underline;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .small-button {
+      border: none;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .complete-button {
+      background: var(--green-light);
+      color: var(--green);
+    }
+
+    .edit-button {
+      background: var(--blue-light);
+      color: var(--blue);
+    }
+
+    .delete-button {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 35px 10px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 1000;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: white;
+      border-radius: 14px;
+      padding: 26px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+    }
+
+    .close-button {
+      border: none;
+      background: #eeeeee;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .cancel-button {
+      border: none;
+      background: #eeeeee;
+      color: var(--text);
+      padding: 11px 17px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 12px;
+    }
+
+    .overdue {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .header {
+        flex-direction: column;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .task {
+        grid-template-columns: 1fr;
+      }
+
+      .task-actions {
+        justify-content: flex-start;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      LabOps <span>AI</span>
+    </div>
+
+    <nav class="nav">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/experiments.html">Experiments</a>
+      <a href="#">Inventory</a>
+      <a href="/tasks.html" class="active">Tasks</a>
+      <a href="#">AI Assistant</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      LabOps AI<br>
+      Research operations workspace
+    </div>
+
+  </aside>
+
+  <main class="main">
+
+    <div class="header">
+
+      <div>
+        <h1>Tasks</h1>
+        <p>
+          Track experimental work, deadlines, and research responsibilities.
+        </p>
+      </div>
+
+      <button
+        class="primary-button"
+        onclick="openCreateTask()"
+      >
+        + New Task
+      </button>
+
+    </div>
+
+
+    <div class="summary-grid">
+
+      <div class="summary-card">
+        <div class="summary-label">Open Tasks</div>
+        <div class="summary-value" id="openCount">0</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">In Progress</div>
+        <div class="summary-value" id="progressCount">0</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Due Soon</div>
+        <div class="summary-value" id="dueSoonCount">0</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Completed</div>
+        <div class="summary-value" id="completedCount">0</div>
+      </div>
+
+    </div>
+
+
+    <section class="panel">
+
+      <div class="filters">
+
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search tasks..."
+          oninput="renderTasks()"
+        >
+
+        <select
+          id="statusFilter"
+          onchange="renderTasks()"
+        >
+          <option value="">All statuses</option>
+          <option value="To Do">To Do</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+
+        <select
+          id="priorityFilter"
+          onchange="renderTasks()"
+        >
+          <option value="">All priorities</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+
+      </div>
+
+      <div id="taskList" class="task-list">
+        <div class="empty">Loading tasks...</div>
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<div id="modalContainer"></div>
+
+
+<script>
+  let tasks = [];
+  let experiments = [];
+
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+
+  async function loadPage() {
+    try {
+      const [taskResponse, experimentResponse] =
+        await Promise.all([
+          fetch("/api/tasks"),
+          fetch("/api/experiments")
+        ]);
+
+      const taskData = await taskResponse.json();
+      const experimentData =
+        await experimentResponse.json();
+
+      if (!taskResponse.ok || !taskData.success) {
+        throw new Error(
+          taskData.error || "Unable to load tasks."
+        );
+      }
+
+      if (
+        !experimentResponse.ok ||
+        !experimentData.success
+      ) {
+        throw new Error(
+          experimentData.error ||
+          "Unable to load experiments."
+        );
+      }
+
+      tasks = taskData.tasks || [];
+      experiments =
+        experimentData.experiments || [];
+
+      updateSummary();
+      renderTasks();
+
+    } catch (error) {
+      console.error(error);
+
+      document.getElementById(
+        "taskList"
+      ).innerHTML = `
+        <div class="empty">
+          Unable to load tasks.
+        </div>
+      `;
+    }
+  }
+
+
+  function updateSummary() {
+    const open = tasks.filter(
+      task => task.status !== "Completed"
+    );
+
+    const progress = tasks.filter(
+      task => task.status === "In Progress"
+    );
+
+    const completed = tasks.filter(
+      task => task.status === "Completed"
+    );
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const soon = new Date(today);
+    soon.setDate(soon.getDate() + 7);
+
+    const dueSoon = tasks.filter(task => {
+      if (
+        !task.due_date ||
+        task.status === "Completed"
+      ) {
+        return false;
+      }
+
+      const due = parseDate(task.due_date);
+
+      return due >= today && due <= soon;
+    });
+
+    document.getElementById(
+      "openCount"
+    ).textContent = open.length;
+
+    document.getElementById(
+      "progressCount"
+    ).textContent = progress.length;
+
+    document.getElementById(
+      "dueSoonCount"
+    ).textContent = dueSoon.length;
+
+    document.getElementById(
+      "completedCount"
+    ).textContent = completed.length;
+  }
+
+
+  function renderTasks() {
+    const container =
+      document.getElementById("taskList");
+
+    const search =
+      document.getElementById(
+        "searchInput"
+      ).value.trim().toLowerCase();
+
+    const status =
+      document.getElementById(
+        "statusFilter"
+      ).value;
+
+    const priority =
+      document.getElementById(
+        "priorityFilter"
+      ).value;
+
+    const filtered = tasks.filter(task => {
+      const haystack = [
+        task.title,
+        task.description,
+        task.assigned_to,
+        task.experiment_title
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      if (
+        search &&
+        !haystack.includes(search)
+      ) {
+        return false;
+      }
+
+      if (
+        status &&
+        task.status !== status
+      ) {
+        return false;
+      }
+
+      if (
+        priority &&
+        task.priority !== priority
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="empty">
+          No tasks match your current filters.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map(task => renderTask(task))
+      .join("");
+  }
+
+
+  function renderTask(task) {
+    const completed =
+      task.status === "Completed";
+
+    const statusClass =
+      task.status === "Completed"
+        ? "status-completed"
+        : task.status === "In Progress"
+        ? "status-progress"
+        : "status-todo";
+
+    const priorityClass =
+      task.priority === "High"
+        ? "priority-high"
+        : task.priority === "Low"
+        ? "priority-low"
+        : "priority-medium";
+
+    let dueHtml = "";
+
+    if (task.due_date) {
+      const overdue =
+        isOverdue(task.due_date) &&
+        !completed;
+
+      dueHtml = `
+        <span
+          class="meta-text ${overdue ? "overdue" : ""}"
+        >
+          ${overdue ? "Overdue · " : "Due · "}
+          ${escapeHtml(formatDueDate(task.due_date))}
+        </span>
+      `;
+    }
+
+    let experimentHtml = "";
+
+    if (
+      task.experiment_id &&
+      task.experiment_title
+    ) {
+      experimentHtml = `
+        <a
+          class="experiment-link"
+          href="/experiment.html?id=${encodeURIComponent(
+            task.experiment_id
+          )}"
+        >
+          ${escapeHtml(task.experiment_title)}
+        </a>
+      `;
+    }
+
+    const description = task.description
+      ? `
+        <div class="task-description">
+          ${escapeHtml(task.description)}
+        </div>
+      `
+      : "";
+
+    const assigned = task.assigned_to
+      ? `
+        <span class="meta-text">
+          Assigned to ${escapeHtml(task.assigned_to)}
+        </span>
+      `
+      : "";
+
+    return `
+      <div class="task">
+
+        <div>
+
+          <div
+            class="task-title ${completed ? "completed" : ""}"
+          >
+            ${escapeHtml(task.title)}
+          </div>
+
+          ${description}
+
+          <div class="task-meta">
+
+            <span class="badge ${statusClass}">
+              ${escapeHtml(task.status)}
+            </span>
+
+            <span class="badge ${priorityClass}">
+              ${escapeHtml(task.priority)}
+            </span>
+
+            ${dueHtml}
+            ${assigned}
+            ${experimentHtml}
+
+          </div>
+
+        </div>
+
+        <div class="task-actions">
+
+          ${
+            completed
+              ? `
+                <button
+                  class="small-button complete-button"
+                  onclick="changeTaskStatus(
+                    ${task.id},
+                    'To Do'
+                  )"
+                >
+                  Reopen
+                </button>
+              `
+              : `
+                <button
+                  class="small-button complete-button"
+                  onclick="changeTaskStatus(
+                    ${task.id},
+                    'Completed'
+                  )"
+                >
+                  Complete
+                </button>
+              `
+          }
+
+          <button
+            class="small-button edit-button"
+            onclick="openEditTask(${task.id})"
+          >
+            Edit
+          </button>
+
+          <button
+            class="small-button delete-button"
+            onclick="deleteTask(${task.id})"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  function experimentOptions(selectedId = "") {
+    const options = experiments
+      .map(experiment => `
+        <option
+          value="${experiment.id}"
+          ${
+            Number(selectedId) ===
+            Number(experiment.id)
+              ? "selected"
+              : ""
+          }
+        >
+          ${escapeHtml(experiment.title)}
+        </option>
+      `)
+      .join("");
+
+    return `
+      <option value="">
+        No linked experiment
+      </option>
+      ${options}
+    `;
+  }
+
+
+  function openCreateTask() {
+    showTaskModal({
+      mode: "create",
+      task: {
+        title: "",
+        description: "",
+        experiment_id: "",
+        assigned_to: "",
+        due_date: "",
+        priority: "Medium",
+        status: "To Do"
+      }
+    });
+  }
+
+
+  function openEditTask(taskId) {
+    const task = tasks.find(
+      item => Number(item.id) === Number(taskId)
+    );
+
+    if (!task) return;
+
+    showTaskModal({
+      mode: "edit",
+      task
+    });
+  }
+
+
+  function showTaskModal({ mode, task }) {
+    const editing = mode === "edit";
+
+    document.getElementById(
+      "modalContainer"
+    ).innerHTML = `
+      <div
+        class="modal-backdrop"
+        onclick="backdropClose(event)"
+      >
+
+        <div class="modal">
+
+          <div class="modal-header">
+
+            <h2>
+              ${editing ? "Edit Task" : "New Task"}
+            </h2>
+
+            <button
+              class="close-button"
+              onclick="closeModal()"
+            >
+              ×
+            </button>
+
+          </div>
+
+          <form
+            onsubmit="${
+              editing
+                ? `saveTask(event, ${task.id})`
+                : "createTask(event)"
+            }"
+          >
+
+            <div class="form-group">
+              <label>Task Title *</label>
+
+              <input
+                id="taskTitle"
+                type="text"
+                value="${escapeHtml(task.title || "")}"
+                placeholder="e.g. Run 48-hour swelling measurements"
+                required
+              >
+            </div>
+
+
+            <div class="form-group">
+              <label>Description</label>
+
+              <textarea
+                id="taskDescription"
+                placeholder="Add instructions or details..."
+              >${escapeHtml(task.description || "")}</textarea>
+            </div>
+
+
+            <div class="form-group">
+              <label>Experiment</label>
+
+              <select id="taskExperiment">
+                ${experimentOptions(
+                  task.experiment_id || ""
+                )}
+              </select>
+            </div>
+
+
+            <div class="form-row">
+
+              <div class="form-group">
+                <label>Assigned To</label>
+
+                <input
+                  id="taskAssigned"
+                  type="text"
+                  value="${escapeHtml(
+                    task.assigned_to || ""
+                  )}"
+                  placeholder="Researcher name"
+                >
+              </div>
+
+              <div class="form-group">
+                <label>Due Date</label>
+
+                <input
+                  id="taskDueDate"
+                  type="date"
+                  value="${escapeHtml(
+                    task.due_date || ""
+                  )}"
+                >
+              </div>
+
+            </div>
+
+
+            <div class="form-row">
+
+              <div class="form-group">
+                <label>Priority</label>
+
+                <select id="taskPriority">
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Status</label>
+
+                <select id="taskStatus">
+                  <option value="To Do">To Do</option>
+                  <option value="In Progress">
+                    In Progress
+                  </option>
+                  <option value="Completed">
+                    Completed
+                  </option>
+                </select>
+              </div>
+
+            </div>
+
+            <div
+              id="modalError"
+              class="error-message"
+            ></div>
+
+            <div class="modal-actions">
+
+              <button
+                type="button"
+                class="cancel-button"
+                onclick="closeModal()"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                class="primary-button"
+              >
+                ${editing ? "Save Changes" : "Create Task"}
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </div>
+    `;
+
+    document.getElementById(
+      "taskPriority"
+    ).value = task.priority || "Medium";
+
+    document.getElementById(
+      "taskStatus"
+    ).value = task.status || "To Do";
+  }
+
+
+  function closeModal() {
+    document.getElementById(
+      "modalContainer"
+    ).innerHTML = "";
+  }
+
+
+  function backdropClose(event) {
+    if (
+      event.target.classList.contains(
+        "modal-backdrop"
+      )
+    ) {
+      closeModal();
+    }
+  }
+
+
+  function getTaskFormData() {
+    return {
+      title:
+        document.getElementById(
+          "taskTitle"
+        ).value.trim(),
+
+      description:
+        document.getElementById(
+          "taskDescription"
+        ).value.trim(),
+
+      experiment_id:
+        document.getElementById(
+          "taskExperiment"
+        ).value,
+
+      assigned_to:
+        document.getElementById(
+          "taskAssigned"
+        ).value.trim(),
+
+      due_date:
+        document.getElementById(
+          "taskDueDate"
+        ).value,
+
+      priority:
+        document.getElementById(
+          "taskPriority"
+        ).value,
+
+      status:
+        document.getElementById(
+          "taskStatus"
+        ).value
+    };
+  }
+
+
+  async function createTask(event) {
+    event.preventDefault();
+
+    const data = getTaskFormData();
+
+    try {
+      const response = await fetch(
+        "/api/tasks",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "Unable to create task."
+        );
+      }
+
+      closeModal();
+      await reloadTasks();
+
+    } catch (error) {
+      showModalError(error.message);
+    }
+  }
+
+
+  async function saveTask(event, taskId) {
+    event.preventDefault();
+
+    const data = getTaskFormData();
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "Unable to update task."
+        );
+      }
+
+      closeModal();
+      await reloadTasks();
+
+    } catch (error) {
+      showModalError(error.message);
+    }
+  }
+
+
+  async function changeTaskStatus(
+    taskId,
+    newStatus
+  ) {
+    const task = tasks.find(
+      item => Number(item.id) === Number(taskId)
+    );
+
+    if (!task) return;
+
+    const data = {
+      title: task.title,
+      description: task.description || "",
+      experiment_id: task.experiment_id || "",
+      assigned_to: task.assigned_to || "",
+      due_date: task.due_date || "",
+      priority: task.priority || "Medium",
+      status: newStatus
+    };
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Unable to update task status."
+        );
+      }
+
+      await reloadTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  async function deleteTask(taskId) {
+    const confirmed = confirm(
+      "Delete this task? This cannot be undone."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        "/api/tasks/" +
+        encodeURIComponent(taskId),
+        {
+          method: "DELETE"
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "Unable to delete task."
+        );
+      }
+
+      await reloadTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  async function reloadTasks() {
+    try {
+      const response =
+        await fetch("/api/tasks");
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error || "Unable to load tasks."
+        );
+      }
+
+      tasks = result.tasks || [];
+
+      updateSummary();
+      renderTasks();
+
+    } catch (error) {
+      console.error(error);
+      alert(error.message);
+    }
+  }
+
+
+  function showModalError(message) {
+    const element =
+      document.getElementById("modalError");
+
+    if (element) {
+      element.textContent = message;
+    }
+  }
+
+
+  function parseDate(dateString) {
+    const parts =
+      String(dateString).split("-");
+
+    if (parts.length !== 3) {
+      return new Date(dateString);
+    }
+
+    return new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2])
+    );
+  }
+
+
+  function formatDueDate(dateString) {
+    const date = parseDate(dateString);
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }
+    );
+  }
+
+
+  function isOverdue(dateString) {
+    const due = parseDate(dateString);
+
+    due.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    return due < today;
+  }
+
+
+  loadPage();
+</script>
+
+</body>
+</html>
