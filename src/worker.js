@@ -2416,10 +2416,20 @@ ${question}
         // NORMALIZE MODEL RESPONSE
         // --------------------------------------------------------
 
-        let answer = "";
+               let answer = "";
 
 
         if (
+          aiResponse &&
+          Array.isArray(aiResponse.choices) &&
+          aiResponse.choices.length > 0 &&
+          aiResponse.choices[0].message &&
+          typeof aiResponse.choices[0].message.content === "string"
+        ) {
+          answer =
+            aiResponse.choices[0].message.content.trim();
+
+        } else if (
           aiResponse &&
           typeof aiResponse.response === "string"
         ) {
@@ -2439,8 +2449,6 @@ ${question}
           answer =
             aiResponse.trim();
         }
-
-
         if (!answer) {
           console.log(
             "Unexpected AI response:",
