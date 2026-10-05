@@ -1589,7 +1589,527 @@ export default {
       }
     }
 
+    // ============================================================
+    // INVENTORY ROUTE MATCHING
+    // ============================================================
 
+    const inventoryMatch = url.pathname.match(
+      /^\/api\/inventory\/(\d+)$/
+    );
+
+
+    // ============================================================
+    // GET ALL INVENTORY
+    // ============================================================
+
+    if (
+      url.pathname === "/api/inventory" &&
+      request.method === "GET"
+    ) {
+      try {
+        const { results } = await env.DB.prepare(
+          `SELECT
+             id,
+             name,
+             category,
+             quantity,
+             unit,
+             minimum_quantity,
+             location,
+             supplier,
+             catalog_number,
+             lot_number,
+             expiration_date,
+             notes,
+             created_at,
+             updated_at
+           FROM inventory
+           ORDER BY name COLLATE NOCASE ASC`
+        ).all();
+
+        return Response.json({
+          success: true,
+          items: results || []
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load inventory."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // CREATE INVENTORY ITEM
+    // ============================================================
+
+    if (
+      url.pathname === "/api/inventory" &&
+      request.method === "POST"
+    ) {
+      try {
+        const data = await request.json();
+
+        const name = String(
+          data.name || ""
+        ).trim();
+
+        const category = String(
+          data.category || "Other"
+        ).trim();
+
+        const unit = String(
+          data.unit || ""
+        ).trim();
+
+        const location = String(
+          data.location || ""
+        ).trim();
+
+        const supplier = String(
+          data.supplier || ""
+        ).trim();
+
+        const catalogNumber = String(
+          data.catalog_number || ""
+        ).trim();
+
+        const lotNumber = String(
+          data.lot_number || ""
+        ).trim();
+
+        const expirationDate = String(
+          data.expiration_date || ""
+        ).trim();
+
+        const notes = String(
+          data.notes || ""
+        ).trim();
+
+
+        const quantity =
+          data.quantity === "" ||
+          data.quantity === null ||
+          data.quantity === undefined
+            ? 0
+            : Number(data.quantity);
+
+
+        const minimumQuantity =
+          data.minimum_quantity === "" ||
+          data.minimum_quantity === null ||
+          data.minimum_quantity === undefined
+            ? 0
+            : Number(data.minimum_quantity);
+
+
+        if (!name) {
+          return Response.json(
+            {
+              success: false,
+              error: "Item name is required."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        if (
+          !Number.isFinite(quantity) ||
+          quantity < 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                "Quantity must be a valid number greater than or equal to 0."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        if (
+          !Number.isFinite(minimumQuantity) ||
+          minimumQuantity < 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                "Minimum quantity must be a valid number greater than or equal to 0."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        const result = await env.DB.prepare(
+          `INSERT INTO inventory
+          (
+            name,
+            category,
+            quantity,
+            unit,
+            minimum_quantity,
+            location,
+            supplier,
+            catalog_number,
+            lot_number,
+            expiration_date,
+            notes
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+          .bind(
+            name,
+            category,
+            quantity,
+            unit,
+            minimumQuantity,
+            location,
+            supplier,
+            catalogNumber,
+            lotNumber,
+            expirationDate,
+            notes
+          )
+          .run();
+
+
+        return Response.json({
+          success: true,
+          itemId: result.meta.last_row_id
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to create inventory item."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // GET SINGLE INVENTORY ITEM
+    // ============================================================
+
+    if (
+      inventoryMatch &&
+      request.method === "GET"
+    ) {
+      try {
+        const itemId =
+          inventoryMatch[1];
+
+        const item = await env.DB.prepare(
+          `SELECT
+             id,
+             name,
+             category,
+             quantity,
+             unit,
+             minimum_quantity,
+             location,
+             supplier,
+             catalog_number,
+             lot_number,
+             expiration_date,
+             notes,
+             created_at,
+             updated_at
+           FROM inventory
+           WHERE id = ?`
+        )
+          .bind(itemId)
+          .first();
+
+
+        if (!item) {
+          return Response.json(
+            {
+              success: false,
+              error: "Inventory item not found."
+            },
+            { status: 404 }
+          );
+        }
+
+
+        return Response.json({
+          success: true,
+          item
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to load inventory item."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // UPDATE INVENTORY ITEM
+    // ============================================================
+
+    if (
+      inventoryMatch &&
+      request.method === "PUT"
+    ) {
+      try {
+        const itemId =
+          inventoryMatch[1];
+
+        const data =
+          await request.json();
+
+
+        const name = String(
+          data.name || ""
+        ).trim();
+
+        const category = String(
+          data.category || "Other"
+        ).trim();
+
+        const unit = String(
+          data.unit || ""
+        ).trim();
+
+        const location = String(
+          data.location || ""
+        ).trim();
+
+        const supplier = String(
+          data.supplier || ""
+        ).trim();
+
+        const catalogNumber = String(
+          data.catalog_number || ""
+        ).trim();
+
+        const lotNumber = String(
+          data.lot_number || ""
+        ).trim();
+
+        const expirationDate = String(
+          data.expiration_date || ""
+        ).trim();
+
+        const notes = String(
+          data.notes || ""
+        ).trim();
+
+
+        const quantity =
+          data.quantity === "" ||
+          data.quantity === null ||
+          data.quantity === undefined
+            ? 0
+            : Number(data.quantity);
+
+
+        const minimumQuantity =
+          data.minimum_quantity === "" ||
+          data.minimum_quantity === null ||
+          data.minimum_quantity === undefined
+            ? 0
+            : Number(data.minimum_quantity);
+
+
+        if (!name) {
+          return Response.json(
+            {
+              success: false,
+              error: "Item name is required."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        if (
+          !Number.isFinite(quantity) ||
+          quantity < 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                "Quantity must be a valid number greater than or equal to 0."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        if (
+          !Number.isFinite(minimumQuantity) ||
+          minimumQuantity < 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                "Minimum quantity must be a valid number greater than or equal to 0."
+            },
+            { status: 400 }
+          );
+        }
+
+
+        const existing =
+          await env.DB.prepare(
+            `SELECT id
+             FROM inventory
+             WHERE id = ?`
+          )
+            .bind(itemId)
+            .first();
+
+
+        if (!existing) {
+          return Response.json(
+            {
+              success: false,
+              error: "Inventory item not found."
+            },
+            { status: 404 }
+          );
+        }
+
+
+        await env.DB.prepare(
+          `UPDATE inventory
+           SET
+             name = ?,
+             category = ?,
+             quantity = ?,
+             unit = ?,
+             minimum_quantity = ?,
+             location = ?,
+             supplier = ?,
+             catalog_number = ?,
+             lot_number = ?,
+             expiration_date = ?,
+             notes = ?,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
+        )
+          .bind(
+            name,
+            category,
+            quantity,
+            unit,
+            minimumQuantity,
+            location,
+            supplier,
+            catalogNumber,
+            lotNumber,
+            expirationDate,
+            notes,
+            itemId
+          )
+          .run();
+
+
+        return Response.json({
+          success: true,
+          itemId: Number(itemId)
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to update inventory item."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // ============================================================
+    // DELETE INVENTORY ITEM
+    // ============================================================
+
+    if (
+      inventoryMatch &&
+      request.method === "DELETE"
+    ) {
+      try {
+        const itemId =
+          inventoryMatch[1];
+
+
+        const existing =
+          await env.DB.prepare(
+            `SELECT id
+             FROM inventory
+             WHERE id = ?`
+          )
+            .bind(itemId)
+            .first();
+
+
+        if (!existing) {
+          return Response.json(
+            {
+              success: false,
+              error: "Inventory item not found."
+            },
+            { status: 404 }
+          );
+        }
+
+
+        await env.DB.prepare(
+          `DELETE FROM inventory
+           WHERE id = ?`
+        )
+          .bind(itemId)
+          .run();
+
+
+        return Response.json({
+          success: true
+        });
+
+      } catch (error) {
+        console.error(error);
+
+        return Response.json(
+          {
+            success: false,
+            error: "Unable to delete inventory item."
+          },
+          { status: 500 }
+        );
+      }
+    }
     // ============================================================
     // STATIC WEBSITE
     // ============================================================
