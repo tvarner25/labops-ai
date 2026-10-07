@@ -2110,6 +2110,220 @@ export default {
         );
       }
     }
+          // ============================================================
+      // AI EXPERIMENT ANALYSIS
+      // ============================================================
+
+      const experimentAnalysisMatch =
+        url.pathname.match(
+          /^\/api\/experiments\/(\d+)\/analyze$/
+        );
+
+      if (
+        experimentAnalysisMatch &&
+        request.method === "POST"
+      ) {
+        const experimentId =
+          experimentAnalysisMatch[1];
+
+        try {
+          const experiment =
+            await env.DB.prepare(
+              `
+              SELECT *
+              FROM experiments
+              WHERE id = ?
+              `
+            )
+              .bind(experimentId)
+              .first();
+
+          if (!experiment) {
+            return jsonResponse(
+              {
+                success: false,
+                error: "Experiment not found."
+              },
+              404
+            );
+          }
+
+          const notes =
+            await env.DB.prepare(
+              `
+              SELECT *
+              FROM experiment_notes
+              WHERE experiment_id = ?
+              ORDER BY created_at DESC
+              `
+            )
+              .bind(experimentId)
+              .all();
+
+          const results =
+            await env.DB.prepare(
+              `
+              SELECT *
+              FROM experiment_results
+              WHERE experiment_id = ?
+              ORDER BY created_at DESC
+              `
+            )
+              .bind(experimentId)
+              .all();
+
+          const tasks =
+            await env.DB.prepare(
+              `
+              SELECT *
+              FROM tasks
+              WHERE experiment_id = ?
+              ORDER BY created_at DESC
+              `
+            )
+              .bind(experimentId)
+              .all();
+
+          const systemPrompt = `
+You are the LabOps AI Experiment Analyst.
+
+Analyze one laboratory experiment using only the LabOps data
+provided to you.
+
+Your job is to help a researcher understand the current state
+of the experiment.
+
+Focus on:
+- the experiment objective and protocol
+- recorded experimental results
+- trends or patterns in the measurements
+- notable observations from experiment notes
+- incomplete or missing information
+- open, overdue, or important tasks
+- possible anomalies that deserve researcher attention
+- reasonable next steps based on the recorded information
+
+Important rules:
+- Treat the supplied LabOps data as the source of truth.
+- Never invent measurements, observations, results, or events.
+- Clearly distinguish recorded facts from interpretation.
+- Do not claim statistical significance unless the supplied
+  data supports it.
+- Do not modify any LabOps data.
+- If there is not enough information for a conclusion, say so.
+- Keep the analysis useful and concise.
+`;
+
+          const analysisPrompt = `
+Analyze the following LabOps experiment.
+
+EXPERIMENT:
+${JSON.stringify(experiment, null, 2)}
+
+EXPERIMENT NOTES:
+${JSON.stringify(notes.results || [], null, 2)}
+
+STRUCTURED RESULTS:
+${JSON.stringify(results.results || [], null, 2)}
+
+ASSOCIATED TASKS:
+${JSON.stringify(tasks.results || [], null, 2)}
+
+Provide the analysis using these sections:
+
+Summary
+Key Findings
+Observations
+Tasks / Attention Needed
+Data Gaps
+Suggested Next Steps
+`;
+
+          const aiResponse =
+            await env.AI.run(
+              "@cf/zai-org/glm-4.7-flash",
+              {
+                messages: [
+                  {
+                    role: "system",
+                    content: systemPrompt
+                  },
+                  {
+                    role: "user",
+                    content: analysisPrompt
+                  }
+                ]
+              }
+            );
+
+          let analysis = "";
+
+          if (
+            aiResponse &&
+            Array.isArray(aiResponse.choices) &&
+            aiResponse.choices.length > 0 &&
+            aiResponse.choices[0].message &&
+            typeof aiResponse.choices[0].message.content ===
+              "string"
+          ) {
+            analysis =
+              aiResponse.choices[0].message.content.trim();
+
+          } else if (
+            aiResponse &&
+            typeof aiResponse.response === "string"
+          ) {
+            analysis =
+              aiResponse.response.trim();
+
+          } else if (
+            aiResponse &&
+            typeof aiResponse.result === "string"
+          ) {
+            analysis =
+              aiResponse.result.trim();
+
+          } else if (
+            typeof aiResponse === "string"
+          ) {
+            analysis =
+              aiResponse.trim();
+          }
+
+          if (!analysis) {
+            return jsonResponse(
+              {
+                success: false,
+                error:
+                  "LabOps AI returned an unexpected response."
+              },
+              502
+            );
+          }
+
+          return jsonResponse({
+            success: true,
+            experiment_id:
+              Number(experimentId),
+            analysis
+          });
+
+        } catch (error) {
+          console.error(
+            "Experiment analysis error:",
+            error
+          );
+
+          return jsonResponse(
+            {
+              success: false,
+              error:
+                "Unable to analyze experiment."
+            },
+            500
+          );
+        }
+      }
         // ============================================================
     // LABOPS AI ASSISTANT
     // ============================================================
