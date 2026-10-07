@@ -887,7 +887,77 @@
       .replaceAll("'", "&#039;");
   }
 
+async function analyzeExperiment() {
+  const experimentId =
+    getExperimentId();
 
+  const button =
+    document.getElementById(
+      "analyzeExperimentButton"
+    );
+
+  const output =
+    document.getElementById(
+      "experimentAnalysis"
+    );
+
+  if (
+    !experimentId ||
+    !button ||
+    !output
+  ) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent =
+    "Analyzing Experiment...";
+
+  output.style.display = "block";
+  output.textContent =
+    "LabOps AI is analyzing this experiment...";
+
+  try {
+    const response =
+      await fetch(
+        `/api/experiments/${encodeURIComponent(
+          experimentId
+        )}/analyze`,
+        {
+          method: "POST"
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (
+      !response.ok ||
+      !result.success
+    ) {
+      throw new Error(
+        result.error ||
+        "Unable to analyze experiment."
+      );
+    }
+
+    output.textContent =
+      result.analysis ||
+      "No analysis was returned.";
+
+  } catch (error) {
+    console.error(error);
+
+    output.textContent =
+      error.message ||
+      "Unable to analyze experiment. Please try again.";
+
+  } finally {
+    button.disabled = false;
+    button.textContent =
+      "Analyze Experiment";
+  }
+}
   function getExperimentId() {
     const params = new URLSearchParams(
       window.location.search
@@ -1291,6 +1361,40 @@
           <section class="panel">
 
             <h2>Experiment Details</h2>
+            <button
+  type="button"
+  id="analyzeExperimentButton"
+  onclick="analyzeExperiment()"
+  style="
+    width: 100%;
+    margin: 0 0 18px 0;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 9px;
+    background: #274e13;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  "
+>
+  Analyze Experiment
+</button>
+
+<div
+  id="experimentAnalysis"
+  style="
+    display: none;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid #dfe5dc;
+    border-radius: 10px;
+    background: #f6f8f5;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  "
+></div>
 
             <div class="detail">
 
