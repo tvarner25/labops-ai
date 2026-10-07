@@ -2110,7 +2110,7 @@ export default {
         );
       }
     }
-          // ============================================================
+           // ============================================================
       // AI EXPERIMENT ANALYSIS
       // ============================================================
 
@@ -2139,12 +2139,14 @@ export default {
               .first();
 
           if (!experiment) {
-            return jsonResponse(
+            return Response.json(
               {
                 success: false,
                 error: "Experiment not found."
               },
-              404
+              {
+                status: 404
+              }
             );
           }
 
@@ -2291,17 +2293,19 @@ Suggested Next Steps
           }
 
           if (!analysis) {
-            return jsonResponse(
+            return Response.json(
               {
                 success: false,
                 error:
                   "LabOps AI returned an unexpected response."
               },
-              502
+              {
+                status: 502
+              }
             );
           }
 
-          return jsonResponse({
+          return Response.json({
             success: true,
             experiment_id:
               Number(experimentId),
@@ -2314,17 +2318,19 @@ Suggested Next Steps
             error
           );
 
-          return jsonResponse(
+          return Response.json(
             {
               success: false,
               error:
                 "Unable to analyze experiment."
             },
-            500
+            {
+              status: 500
+            }
           );
         }
       }
-        // ============================================================
+    // ============================================================
     // LABOPS AI ASSISTANT
     // ============================================================
 
